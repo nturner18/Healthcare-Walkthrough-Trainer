@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Walkthrough Trainer: Brightline Family Dental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f4f7;--panel:#ffffff;--ink:#121c36;--muted:#5a6479;--line:#dbe0e8;
+  --navy:#011138;--gold:#D4A04C;--high:#b8392b;--med:#a96f0c;--low:#2f7565;--ok:#3f679f;--good:#2f7d4f;
+  --stagebg:#dfe5ea;--chip:#eef1f6;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#060b20;--panel:#0e1633;--ink:#e9edf6;--muted:#9ba6bf;--line:#243052;
+    --high:#e0705f;--med:#e2a843;--low:#5fbfa6;--ok:#86a8de;--good:#6fcf97;--stagebg:#0a1230;--chip:#18234a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#060b20;--panel:#0e1633;--ink:#e9edf6;--muted:#9ba6bf;--line:#243052;
+  --high:#e0705f;--med:#e2a843;--low:#5fbfa6;--ok:#86a8de;--good:#6fcf97;--stagebg:#0a1230;--chip:#18234a;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.5;min-height:100%}
+button{font:inherit;color:inherit}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,[tabindex]:focus-visible,summary:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--navy);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:3px solid var(--gold)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand svg{flex:none}
+.brand b{font-weight:700;font-size:15px;white-space:nowrap}
+.brand span{font-size:13px;color:#c9d0e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(212,160,76,.6);border-radius:999px;padding:5px 12px 5px 8px;cursor:pointer;font-variant-numeric:tabular-nums;font-weight:600}
+.timer.low{border-color:#ff8a72;color:#ffd2c8}
+.sbtn{background:rgba(255,255,255,.08);border:1px solid rgba(212,160,76,.6);border-radius:999px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.sw{display:flex;width:100%;gap:14px;align-items:center;text-align:left;background:transparent;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px;cursor:pointer}
+.sw[aria-checked="true"]{border-color:var(--gold);background:rgba(212,160,76,.10)}
+.sw .swt{flex:1}.sw .swt b{display:block;font-size:16px}.sw .swt span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.track{flex:none;width:52px;height:30px;border-radius:999px;background:#c3c9d3;position:relative;transition:background .15s}
+.track::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s}
+.sw[aria-checked="true"] .track{background:#011138}.sw[aria-checked="true"] .track::after{left:25px}
+.sw .state{flex:none;width:28px;font-size:13px;font-weight:700;color:var(--muted)}
+.score{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:15px}
+.score small{color:#c9d0e4;font-weight:500}
+
+main{display:grid;grid-template-columns:1fr}
+@media (min-width:900px){
+  main{grid-template-columns:minmax(0,1fr) 420px;height:calc(100vh - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .panel{overflow-y:auto;border-left:1px solid var(--line)}
+}
+.stagewrap{position:relative;background:var(--stagebg);height:clamp(300px,72vw,60vh);overflow:hidden}
+@media (min-width:900px){.stagewrap{height:100%}}
+#stage{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;transition:opacity .16s ease}
+#stage text{font-family:'Public Sans',system-ui,sans-serif}
+#stage .hand{font-family:'Caveat','Segoe Print','Bradley Hand',cursive}
+#stage [data-id],#stage [data-go],#stage [data-room]{cursor:pointer}
+#stage [data-room]:hover rect.roomfill{fill:#fff7e8}
+#stage [data-id]:focus,#stage [data-go]:focus,#stage [data-room]:focus{outline:none}
+#stage [data-id]:focus-visible>*:first-child,#stage [data-room]:focus-visible rect{stroke:var(--gold);stroke-width:5}
+#markers{pointer-events:none}
+.ripple{animation:rip .5s ease-out forwards}
+@keyframes rip{from{opacity:.7;r:4}to{opacity:0;r:34}}
+.pulse{animation:pul 1.1s ease-in-out infinite}
+@keyframes pul{0%,100%{opacity:1}50%{opacity:.25}}
+.pop{animation:pop .7s ease-out forwards;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.6)}}
+@media (prefers-reduced-motion: reduce){.ripple,.pulse,.pop{animation:none}#stage{transition:none}}
+
+.ctl{position:absolute;display:flex;gap:8px}
+.ctl.zoom{right:12px;bottom:12px;flex-direction:column}
+.ctl.back{left:12px;top:12px}
+.ctl button{background:var(--navy);color:#fff;border:1.5px solid var(--gold);border-radius:12px;min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 2px 10px rgba(1,17,56,.25)}
+.ctl.zoom button{width:44px;padding:0}
+.hidden{display:none !important}
+
+.panel{background:var(--panel);padding:18px 18px 28px}
+.roomhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}
+.roomhead h2{margin:0;font-size:22px;letter-spacing:-.01em}
+.roomhead .rc{color:var(--muted);font-size:14px;white-space:nowrap}
+.progress{height:6px;background:var(--chip);border-radius:6px;overflow:hidden;margin:8px 0 14px}
+.progress i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+.actions button,.btnrow button,.seg button,.trap{background:transparent;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:600}
+.actions button.primary,.btnrow button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+:root[data-theme="dark"] .actions button.primary,:root[data-theme="dark"] .btnrow button.primary{border-color:var(--gold)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .actions button.primary,:root:not([data-theme="light"]) .btnrow button.primary{border-color:var(--gold)}}
+
+.card{border-top:1px solid var(--line);padding-top:14px}
+.card h3{margin:6px 0 10px;font-size:19px;line-height:1.3}
+.card p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.q{font-weight:600;font-size:17px;margin:0 0 12px}
+.seg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.seg>span{width:100%;font-size:13px;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--gold);background:rgba(212,160,76,.18)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.chip{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:999px;border:1.5px solid currentColor;margin-right:6px}
+.sev-High{color:var(--high)}.sev-Medium{color:var(--med)}.sev-Low{color:var(--low)}.c-ok{color:var(--ok)}.c-give{color:var(--good)}.c-save{color:var(--ok)}
+.banner{border-radius:12px;padding:10px 14px;margin:0 0 14px;font-weight:600;background:var(--chip);border-left:4px solid var(--gold)}
+.banner small{display:block;font-weight:500;color:var(--muted);margin-top:2px;font-size:14px}
+.banner.bad{border-left-color:var(--high)}.banner.good{border-left-color:var(--good)}.banner.mid{border-left-color:var(--med)}
+.fld{margin:0 0 12px}
+.fld h4{margin:0 0 2px;font-size:13px;font-weight:700;color:var(--muted)}
+.fld p{margin:0}
+details.say{background:var(--chip);border-radius:12px;padding:10px 14px;margin:6px 0 12px}
+details.say summary{cursor:pointer;font-weight:600;font-size:14.5px}
+details.say p{margin:8px 0 0;font-size:15.5px}
+.owner{font-style:italic}
+.trap{border-style:dashed;margin:4px 0 10px;text-align:left}
+.conduct{border-left:4px solid var(--high);background:var(--chip);border-radius:10px;padding:10px 14px;margin:6px 0 12px}
+.tip{font-size:14.5px;color:var(--muted);margin:0 0 8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(1,10,35,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+@media (min-width:700px){.overlay{align-items:center}}
+.sheet{background:var(--panel);color:var(--ink);width:100%;max-width:680px;max-height:100%;overflow-y:auto;border-radius:18px;padding:22px 20px;border-top:4px solid var(--gold)}
+.sheet h2{margin:0 0 6px;font-size:24px;letter-spacing:-.01em}
+.sheet h3.sec{margin:26px 0 8px;font-size:18px;padding-top:16px;border-top:1px solid var(--line)}
+.sheet p{margin:0 0 12px}
+.sheet .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.sheet .btns button{border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:transparent}
+.sheet .btns button.primary{background:var(--navy);color:#fff;border-color:var(--gold)}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.opt input{width:20px;height:20px;margin-top:2px;accent-color:#011138;flex:none}
+.opt b{display:block}
+.opt span{color:var(--muted);font-size:14.5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 8px}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats div{background:var(--chip);border-radius:12px;padding:10px 12px}
+.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stats span{font-size:13px;color:var(--muted)}
+.insight{background:var(--chip);border-radius:12px;padding:12px 14px;margin:8px 0}
+.insight ul{margin:6px 0 6px 18px;padding:0}
+.dr{margin:18px 0 6px;font-size:16px}
+.di{border-top:1px solid var(--line)}
+.di summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;flex-wrap:wrap}
+.di summary::-webkit-details-marker{display:none}
+.di summary .t{flex:1;min-width:160px}
+.di .body{padding:0 0 12px 22px}
+.di .body p{margin:0 0 8px}
+.st{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--chip);white-space:nowrap}
+.st.found{background:var(--gold);color:#011138}.st.hint{border:1.5px solid var(--gold)}.st.revealed,.st.after{border:1.5px dashed var(--muted)}.st.changed{border:1.5px solid var(--gold)}.st.dismissed,.st.missed{border:1.5px solid var(--high);color:var(--high)}
+.pick{display:flex;gap:10px;align-items:center;padding:6px 0}
+.pick input{width:18px;height:18px;accent-color:#011138}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media (max-width:520px){.cmp{grid-template-columns:1fr}}
+.cmp div{background:var(--chip);border-radius:12px;padding:10px 12px}
+.cmp ol{margin:6px 0 0 18px;padding:0}
+textarea{width:100%;min-height:90px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;font:inherit;font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;border:1.5px solid var(--gold);padding:9px 16px;border-radius:12px;font-weight:600;font-size:14.5px;z-index:60;max-width:92vw;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:899px){.stagewrap{height:calc(60vw + 64px)}.ctl.zoom{flex-direction:row;bottom:10px;right:10px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true"><path d="M13 1 L24 5 V14 C24 21 19 26 13 29 C7 26 2 21 2 14 V5 Z" fill="none" stroke="#D4A04C" stroke-width="2.4"/><path d="M8 15 l4 4 l7 -8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div style="min-width:0;display:flex;flex-direction:column;line-height:1.2"><b>Walkthrough trainer</b><span>Brightline Family Dental</span></div>
+  </div>
+  <button class="sbtn" id="soundBtn" aria-label="Turn office sounds off" aria-pressed="true"><svg id="soundIcon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"></svg></button>
+  <button class="timer" id="timerBtn" aria-label="Start or pause timer">
+    <svg id="timerIcon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"></svg>
+    <span id="timerTxt">30:00</span>
+  </button>
+  <div class="score" id="score"></div>
+</header>
+
+<main>
+  <div class="stagewrap" id="wrap">
+    <svg id="stage" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" aria-label="Office view">
+      <defs><filter id="ds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#1b2430" flood-opacity=".22"/></filter></defs>
+      <g id="scene"></g>
+      <g id="markers"></g>
+    </svg>
+    <div class="ctl back hidden" id="backCtl">
+      <button id="planBtn" aria-label="Zoom out to floor plan">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="2" width="14" height="14" fill="none" stroke="#D4A04C" stroke-width="2"/><path d="M2 8 H10 V2 M10 11 V16" stroke="#D4A04C" stroke-width="2" fill="none"/></svg>
+        Floor plan
+      </button>
+    </div>
+    <div class="ctl zoom">
+      <button id="zin" aria-label="Zoom in"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 3v12M3 9h12" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+      <button id="zout" aria-label="Zoom out"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 9h12" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+      <button id="zfit" aria-label="Show whole room"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#D4A04C" stroke-width="2"><path d="M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4"/></svg></button>
+    </div>
+  </div>
+
+  <aside class="panel" id="panel">
+    <div class="roomhead"><h2 id="roomTitle">Floor plan</h2><span class="rc" id="roomCount"></span></div>
+    <div class="progress" id="progWrap"><i id="roomBar"></i></div>
+    <div class="actions">
+      <button id="hintBtn">Hint</button>
+      <button id="revealBtn">Show what I missed</button>
+      <button id="debriefBtn" class="primary">Debrief</button>
+    </div>
+    <div id="card"></div>
+  </aside>
+</main>
+
+<div class="overlay hidden" id="overlay"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================= CONTENT ================= */
+const ROOM_NAMES = {plan:"Floor plan", reception:"Reception", hallway:"Hallway", operatory:"Operatory 1", imaging:"Imaging room", backoffice:"Back office"};
+const ROOM_ORDER = ["reception","hallway","operatory","imaging","backoffice"];
+
+/* Nick's objection handlers */
+const HANDLERS = {
+ it:{q:"We already have an IT guy.",a:"That's great, and I'm not looking to replace him. He keeps things running. My job is to independently check the security and compliance side. You wouldn't have your accountant audit his own books, and the same idea applies here. Happy to work alongside him."},
+ vendor:{q:"Our vendor handles security.",a:"They do a great job on the platform side. But they don't control what happens on your end: who has access, whether staff share logins, whether old employee accounts were turned off, whether your Wi-Fi is separated from guest access. Those are on the practice, and those are the gaps that show up in an audit."},
+ covered:{q:"We already have it covered.",a:"Glad to hear it. Is it documented, and when was it last reviewed? Things drift: new staff, new devices, vendor access. The walkthrough would either confirm you're in good shape or catch what's changed."},
+ small:{q:"We're too small to be a target.",a:"That's what attackers count on. Most attacks are automated. They scan for open doors, not company size, and small businesses usually have the most of them."},
+ costly:{q:"Costly how?",a:"A few ways. If ransomware locks your systems, you can't see patients or take payments until it's fixed. If someone gets into your email, they can redirect a payment and that money's usually gone. And if data gets exposed, you're looking at notification costs, possible fines, and lawsuits."}
+};
+const SAVE_LINE = "That's one I'd want to look at properly before I tell you what to do.";
+
+/*
+ cat: give = obvious fix, doable today, no knowledge of their systems
+      save = fix depends on their systems, vendors or payment process
+ cost: 1 cheap/today, 2 moderate, 3 project
+ sb: pw (password policy) | train (staff training) for SB 2610 under-20 tier
+*/
+const FINDINGS = [
+ /* ---------- RECEPTION ---------- */
+ {id:"r-screen",room:"reception",sev:"High",cat:"give",cost:1,label:"Front desk monitor",
+  title:"Schedule monitor faces the waiting room",
+  see:"The front desk monitor is angled toward the chairs. From the waiting side you can read today's schedule: patient names and procedures.",
+  why:"Anyone waiting can see who is coming in and why. It's an avoidable disclosure and one of the first things a patient or auditor notices.",
+  ref:"HIPAA 45 CFR 164.530(c) safeguards; 164.310(c) workstation security",
+  say:"Your schedule screen is readable from the waiting room, so anyone sitting there can see who's coming in and why. Turning it toward the desk or adding a privacy filter fixes that today.",
+  fix:"Reposition the monitor so only staff can see it, add a privacy filter, and set a short screen lock. Put screen placement into the workstation security policy so it survives the next furniture shuffle.",
+  ask:"Has a patient ever mentioned seeing other names up here?",
+  push:{owner:"We've never had anyone complain about it.",h:"covered"},
+  ok:"The monitor faces the desk and has a privacy filter. Nothing to raise."},
+ {id:"r-sticky",room:"reception",sev:"High",cat:"give",cost:1,pattern:true,sb:"pw",label:"Note on the monitor",
+  title:"Password on a sticky note",
+  see:"A small sticky note on the bottom of the monitor bezel reads pw: {DESKPW}",
+  why:"A written password at a public counter undoes every other control on that workstation, and its word-plus-year style is probably used elsewhere too.",
+  ref:"HIPAA 164.308(a)(5)(ii)(D) password management; NIST CSF 2.0 PR.AA",
+  say:"There's a password on a sticky note at the front desk. I'd take it down and change that password today.",
+  fix:"Remove the note, change the password, and give front desk staff individual logins plus a password manager. Cover written-down passwords in the password policy and in staff training.",
+  ask:"Is that password shared by everyone who works the desk?",
+  push:{owner:"Who's going to use it? We're a small office.",h:"small"},
+  ok:"No notes on the monitor. Nothing to raise."},
+ {id:"r-card",room:"reception",sev:"High",cat:"save",cost:2,label:"Notepad by the terminal",
+  title:"Card numbers written on a notepad",
+  see:"Among the papers by the card terminal is a notepad with a full card number, expiration date, and the three-digit security code.",
+  why:"Keeping the security code after authorization is prohibited outright, on paper or not. If that notepad walks away, the practice owns the fraud and the notification.",
+  ref:"PCI DSS v4.0.1 Req. 3.3.1 (no sensitive authentication data after authorization); Req. 9.4 media protection",
+  contain:"Shred that notepad today.",
+  say:"I see card details written down by the terminal, including the security code. I'd shred that sheet today. How you take phone payments going forward depends on your payment setup, so that's one I'd want to look at properly before I tell you what to do.",
+  fix:"Stop writing card data down. Move phone payments to a virtual terminal, text-to-pay, or a processor payment link so card data never touches paper or practice systems, then confirm PCI scope and the SAQ type with the processor.",
+  ask:"How do you take payments over the phone today?",
+  push:{owner:"Costly how? It's just a notepad.",h:"costly"},
+  ok:"Just a blank notepad and appointment cards. Nothing to raise."},
+ {id:"r-signin",room:"reception",sev:"Medium",cat:"give",cost:1,label:"Clipboard on the counter",
+  title:"Sign-in sheet asks for reason for visit",
+  see:"The sign-in clipboard collects name, arrival time, and reason for visit, and earlier rows are visible to the next patient.",
+  why:"Sign-in sheets are allowed, but the reason column goes past minimum necessary, and everyone can read the rows above theirs.",
+  ref:"HIPAA 164.502(b) minimum necessary; 164.530(c) incidental disclosures",
+  say:"The sign-in sheet is fine to keep. Dropping the reason column, or switching to peel-off labels, keeps the next patient from reading the rows above.",
+  fix:"Remove the reason-for-visit column, use peel-off or cover-sheet sign-in, and collect clinical details privately at check-in.",
+  ask:"Does the front desk actually use the reason column?",
+  push:{owner:"We've used that sheet for years with no problem.",h:"covered"},
+  ok:"Name and time only, on peel-off labels. Nothing to raise."},
+ {id:"r-printer",room:"reception",sev:"Medium",cat:"give",cost:1,label:"Printer at the end of the counter",
+  title:"Lab results sitting in the printer tray",
+  see:"A biopsy result for {P5} sits in the printer tray, within reach from the patient side of the counter.",
+  why:"Unattended printouts at a shared counter are one of the most common physical exposures in small practices.",
+  ref:"HIPAA 164.310(c) workstation security; 164.530(c) safeguards",
+  say:"There's a lab result sitting in the printer where someone on the waiting side could reach it. Moving the printer behind the desk, or grabbing print jobs right away, closes that today.",
+  fix:"Move the printer to a staff-only spot and turn on secure print release (PIN at the printer) for clinical documents.",
+  ask:"Who picks up print jobs when the front gets busy?",
+  push:{owner:"Somebody always grabs those pretty quick.",h:"covered"},
+  ok:"The tray is empty. Nothing to raise."},
+ {id:"r-wifi",room:"reception",sev:"Medium",cat:"save",cost:3,pattern:true,sb:"pw",label:"Wi-Fi card",
+  title:"Guest Wi-Fi is the office network",
+  see:"A small tent card on the counter gives patients the network {SSID} and the password {WIFIPW}.",
+  why:"If patients join the same network as the practice PCs, imaging, and card terminal, an infected laptop sits one hop from your records. Segmentation also decides how much of the network is in PCI scope.",
+  ref:"HIPAA 164.308(a)(1) risk analysis; 164.312(e)(1) transmission security; PCI DSS v4.0.1 Req. 1",
+  say:"The Wi-Fi you're giving patients looks like the same network your computers and card terminal are on. That means anyone in the waiting room is one step from your patient records. How to separate it depends on your setup, so that's one I'd map out properly in the assessment.",
+  fix:"Create a guest network isolated from the practice network, move the card terminal and clinical devices to their own segments, rotate the password, and verify the separation with a test.",
+  ask:"Is there a separate network for patients, or just the one?",
+  push:{owner:"{IT} set up our network, and he said it's fine.",h:"it"},
+  ok:"The card lists {SSID}-Guest, a separate network. Nothing to raise."},
+ {id:"r-fax",room:"reception",sev:"Medium",cat:"give",cost:1,label:"Fax machine",
+  title:"Incoming faxes pile up on the patient side",
+  see:"The fax output tray, at the end of the counter nearest the chairs, holds incoming referrals and insurance forms with names, dates of birth, and member IDs.",
+  why:"Faxes arrive unattended and full of PHI. Anywhere a patient can reach is the wrong place for the tray.",
+  ref:"HIPAA 164.530(c) safeguards; 164.310(c) workstation security",
+  say:"Incoming faxes are landing where the waiting room can reach them. Moving the fax behind the desk, or clearing the tray every hour, keeps those out of view.",
+  fix:"Relocate the fax to a staff-only area, assign someone to clear it, and consider a secure e-fax service that delivers straight into the practice system.",
+  ask:"Who's responsible for checking the fax during the day?",
+  push:{owner:"We've never had anyone take anything off it.",h:"covered"},
+  ok:"Fax is behind the desk with an empty tray. Nothing to raise."},
+ {id:"r-tablet",room:"reception",sev:"Medium",cat:"save",cost:2,label:"Check-in tablet",
+  title:"Check-in tablet shows the last patient's history",
+  see:"The check-in tablet on the counter still shows {P2}'s health history form, with medications and conditions filled in.",
+  why:"The next person to pick up the tablet can read the previous patient's medical history.",
+  ref:"HIPAA 164.312(a)(2)(iii) automatic logoff; 164.308(b)(1) business associate contracts",
+  contain:"Clear the form after each patient for now.",
+  say:"The check-in tablet still had the last patient's health history up, so the next person can read it. I'd have the desk clear it after each check-in for now. Making it reset on its own depends on how your check-in software is set up, so that's one I'd want to look at properly.",
+  fix:"Configure the check-in app's session timeout and kiosk mode so forms clear automatically, confirm a BAA with the check-in vendor, and make sure the tablet is managed and encrypted.",
+  ask:"Which company provides the check-in app?",
+  push:{owner:"That's the check-in company's software. They handle security.",h:"vendor"},
+  ok:"The tablet shows the welcome screen. Nothing to raise."},
+ {id:"r-tv",room:"reception",sev:"Low",cat:"save",cost:2,label:"Waiting room TV",
+  title:"Smart TV is on the office network",
+  see:"The waiting room TV shows a pop-up in the corner: Connected to {SSID}.",
+  why:"Smart TVs rarely get security updates. Sitting on the office network, it's a weak device next to your records.",
+  ref:"HIPAA 164.308(a)(1)(ii)(B) risk management; CIS Control 1 asset inventory",
+  say:"Your waiting room TV is on the same network as your office computers. Smart TVs rarely get security updates, so it's a weak device sitting next to your records. Where it should live depends on how your network is laid out, so that's one I'd map out in the assessment.",
+  fix:"Move the TV and other consumer devices to a guest or IoT network, turn off features you don't use, keep firmware current, and add it to the device inventory.",
+  ask:"What else in the office connects to Wi-Fi besides computers?",
+  push:{owner:"Who would bother hacking a TV?",h:"small"},
+  ok:"The TV is just playing the practice slideshow. Nothing to raise."},
+
+ /* ---------- HALLWAY ---------- */
+ {id:"h-chart",room:"hallway",sev:"Low",cat:"give",cost:1,label:"Chart holder by the door",
+  title:"Chart holder shows a name to the hallway",
+  see:"The holder outside Operatory 1 has {P5}'s folder with name and date of birth facing out.",
+  why:"Door chart holders are fine when names face the wall. Facing out turns the hallway into a disclosure point.",
+  ref:"HIPAA 164.530(c); HHS guidance on incidental uses and disclosures",
+  say:"Small one: flipping the folders in the door holders so names face the wall keeps them where they need to be.",
+  fix:"Turn folders to face the wall or use holders with a cover, and include it in front-office training.",
+  ask:"Are paper charts still used chairside, or is this left over from before?",
+  push:{owner:"Only staff walk back here.",h:"covered"},
+  ok:"The folder faces the wall. Nothing to raise."},
+ {id:"h-closet",room:"hallway",sev:"High",cat:"give",cost:1,label:"IT closet",
+  title:"Network closet propped open",
+  see:"The IT and electrical door is wedged open with a doorstop, showing the network rack and switch to anyone walking by.",
+  why:"Patients, vendors, and cleaning crews can plug in, unplug, or walk off with equipment. Physical access to the rack bypasses most network controls.",
+  ref:"HIPAA 164.310(a)(1) facility access controls; 164.310(a)(2)(ii) facility security plan",
+  say:"Your network closet was open when I walked by. Keeping it closed and locked, with a short list of who has keys, fixes that today.",
+  fix:"Lock the closet, keep a key log, and if heat is the reason it's propped, add ventilation or a small cooling unit instead.",
+  ask:"Who has a key to that closet, and why is it usually open?",
+  push:{owner:"{IT} keeps it open so the equipment doesn't overheat.",h:"it"},
+  conduct:{btn:"Plug your laptop into the switch to check the network",title:"Don't touch their network",why:"Connecting to their network without signed Rules of Engagement is unauthorized access, even with good intent. A walkthrough is look only. Network testing happens under the ROE in the paid assessment."},
+  ok:"The closet is closed and locked. Nothing to raise."},
+ {id:"h-recycle",room:"hallway",sev:"Medium",cat:"give",cost:1,sb:"train",label:"Recycling bin",
+  title:"Patient paperwork in regular recycling",
+  see:"The blue recycling bin holds an appointment confirmation for {P4}, today at 11:15, right next to the locked shred console.",
+  why:"Recycling often leaves with general trash or goes to a third-party sorter. Paper with PHI needs to go through shredding.",
+  ref:"HIPAA 164.310(d)(2)(i) disposal; 164.530(c); Texas Bus. & Com. Code 72.004",
+  say:"The shred bin is in the right spot, but a few appointment sheets ended up in recycling. A quick reminder to the team usually sorts it out.",
+  fix:"Pull the PHI out of recycling, remind staff that anything with a name goes in the shred console, and spot-check the bin for a few weeks.",
+  ask:"Who empties the recycling, and where does it go?",
+  push:{owner:"We have a shred company. We're covered.",h:"covered"},
+  ok:"Just cardboard and a supply catalog. Nothing to raise."},
+ {id:"h-exit",room:"hallway",sev:"Medium",cat:"give",cost:1,sb:"train",label:"Rear exit",
+  title:"Alarmed rear exit propped open",
+  see:"The emergency exit is held open with a wastebasket, so the alarm isn't doing its job.",
+  why:"An unwatched back door is a direct path to the clinical rooms and the network closet that skips the front desk entirely.",
+  ref:"HIPAA 164.310(a)(2)(iii) access control and validation procedures",
+  say:"The back exit was propped when I came through. Keeping it shut fixes that today. If staff use it for breaks, it's worth agreeing on a better way in.",
+  fix:"Keep the exit closed and alarmed, give staff a proper entry (badge reader or keypad) if they need one, and cover propped doors in training.",
+  ask:"When is that door usually open, and who uses it?",
+  push:{owner:"We're a dentist's office. Nobody's sneaking in.",h:"small"},
+  ok:"The exit is closed and alarmed. Nothing to raise."},
+
+ /* ---------- OPERATORY ---------- */
+ {id:"o-session",room:"operatory",sev:"High",cat:"give",cost:1,label:"Chairside monitor",
+  title:"Last patient's chart still open",
+  see:"The chairside monitor shows {P2}'s chart, X-ray, and balance. Last activity was 24 minutes ago, and the chair is empty.",
+  why:"The next patient in the chair can read the previous patient's record, and anyone can act as whoever logged in last.",
+  ref:"HIPAA 164.312(a)(2)(iii) automatic logoff; 164.310(b) workstation use",
+  say:"The chairside screen still had the last patient's chart open. Locking the screen between patients fixes it today, and a short automatic lock backs that up.",
+  fix:"Lock screens between patients, set a short automatic lock, and if clinicians push back on speed, look at tap-badge or fingerprint login.",
+  ask:"Do clinicians log out between patients, or does it stay open all day?",
+  push:{owner:"Dentrix handles all the security for our records.",h:"vendor"},
+  conduct:{btn:"Take a photo of the screen for your notes",title:"Don't photograph PHI",why:"A photo of a chart puts patient data on your phone before any BAA or authorization covers it. Describe it in your notes instead."},
+  ok:"The screen is locked. Nothing to raise."},
+ {id:"o-shared",room:"operatory",sev:"High",cat:"save",cost:2,label:"Label under the monitor",
+  title:"Shared login on a label",
+  see:"A label taped under the chairside monitor reads op1 / op1.",
+  why:"With a shared account you can't tell who viewed or changed a record. Unique user identification is a required HIPAA specification.",
+  ref:"HIPAA 164.312(a)(2)(i) unique user identification (required); 164.312(b) audit controls",
+  say:"Everyone in this room appears to share one login, so if a record is viewed or changed there's no way to tell who did it. Setting up individual logins depends on how your practice software and staff are configured, so that's one I'd want to look at properly.",
+  fix:"Give every clinician their own account, remove the shared one, set roles by job, and turn on and review the audit log.",
+  ask:"How many people use the op1 account?",
+  push:{owner:"Dentrix set it up that way for us.",h:"vendor"},
+  ok:"No label. Nothing to raise."},
+ {id:"o-win7",room:"operatory",sev:"High",cat:"save",cost:3,label:"Imaging PC",
+  title:"Sensor PC running Windows 7",
+  see:"The PC on the lower cart shelf carries a Windows 7 sticker and a label reading Sensor PC.",
+  why:"Windows 7 stopped getting security updates years ago. These machines usually stay old because the sensor software was never certified on anything newer.",
+  ref:"HIPAA 164.308(a)(1)(ii)(A) and (B) risk analysis and management; NIST CSF 2.0 ID.RA",
+  say:"Your sensor PC appears to be running Windows 7, which hasn't had security updates in years. Usually that's because the X-ray software needs it, so what to do depends on your imaging vendor. That's one I'd want to look at properly before I tell you what to do.",
+  fix:"Ask the imaging vendor for a supported OS path. Until then, isolate the PC on its own network segment, block internet access, and document the exception in the risk register.",
+  ask:"Is that PC on the same network as everything else?",
+  push:{owner:"The X-ray company says it has to stay on that version.",h:"vendor"},
+  ok:"Windows 11 sticker and an asset tag. Nothing to raise."},
+ {id:"o-usb",room:"operatory",sev:"Medium",cat:"save",cost:2,label:"USB stick in the PC",
+  title:"X-ray backups on a USB stick",
+  see:"A USB stick tagged XRAY BKP is plugged into the sensor PC.",
+  why:"If unencrypted media holding X-rays is lost, that's likely a reportable breach. It also suggests imaging backups are manual and outside the main backup.",
+  ref:"HIPAA 164.310(d)(1) device and media controls; 164.312(a)(2)(iv) encryption",
+  say:"There's a USB drive labeled as X-ray backups plugged into the sensor PC. If it's unencrypted and goes missing, that's likely a reportable breach. The right fix depends on how your imaging backups work today, so I'd want to look at that properly.",
+  fix:"Fold imaging into the main encrypted backup, retire the USB stick, and if removable media is unavoidable, use encrypted drives and log them.",
+  ask:"Does that drive ever leave the building?",
+  push:{owner:"Costly how? It never leaves the room.",h:"costly"},
+  ok:"No USB stick. Nothing to raise."},
+
+ /* ---------- IMAGING ---------- */
+ {id:"i-updates",room:"imaging",sev:"High",cat:"save",cost:3,label:"Note on the pano PC",
+  title:"Updates turned off on the pano PC",
+  see:"A note taped to the pano acquisition PC reads: Windows updates OFF per vendor. Do not restart.",
+  why:"Every known hole stays open on a machine that holds images and talks to the rest of the network.",
+  ref:"HIPAA 164.308(a)(1)(ii)(B) risk management; 164.308(a)(5)(ii)(B) protection from malicious software",
+  say:"The pano computer has updates turned off on the vendor's instructions, so every known hole stays open. Imaging vendors often require that, so the answer depends on what they'll support. That's one I'd want to look at properly.",
+  fix:"Get the vendor's supported patch process in writing, schedule tested update windows, isolate the PC on its own segment, and record the exception and its compensating controls.",
+  ask:"When did the vendor last update or check that machine?",
+  push:{owner:"The pano company told us to do that.",h:"vendor"},
+  ok:"No note, and the PC shows a recent update date. Nothing to raise."},
+ {id:"i-drives",room:"imaging",sev:"Medium",cat:"give",cost:1,label:"Box by the door",
+  title:"Old hard drives in the recycling box",
+  see:"A box by the door labeled Old PCs, recycle holds an old tower and two loose hard drives.",
+  why:"Old drives almost always still hold patient data. Recycled without wiping, that's a breach waiting to be found by someone else.",
+  ref:"HIPAA 164.310(d)(2)(i) disposal and (ii) media re-use; Texas Bus. & Com. Code 72.004",
+  say:"There are old hard drives in a box marked for recycling, and they likely still have patient data on them. I'd lock them up today and have them destroyed by a company that gives you a certificate.",
+  fix:"Store retired drives securely, use a certified destruction vendor, keep the certificates, and add disposal to the device inventory process.",
+  ask:"What usually happens to old computers here?",
+  push:{owner:"Costly how? They're dead computers.",h:"costly"},
+  ok:"The box holds packing material for a supply order. Nothing to raise."},
+
+ /* ---------- BACK OFFICE ---------- */
+ {id:"b-whiteboard",room:"backoffice",sev:"High",cat:"give",cost:1,pattern:true,sb:"pw",label:"Whiteboard",
+  title:"System logins on the whiteboard",
+  see:"In the corner of the whiteboard: the Dentrix login, the payroll login ({PAYPW}), and a note that the bank login is in the top drawer.",
+  why:"Every system that matters is written on a wall that cleaning crews, vendors, and visitors can read.",
+  ref:"HIPAA 164.308(a)(5)(ii)(D) password management; 164.308(a)(4) information access management",
+  say:"Several logins are written on the whiteboard where cleaning crews and vendors can see them. I'd wipe the board and change those passwords today.",
+  fix:"Wipe the board, change every listed password, move credentials into a password manager, and turn on MFA for payroll and banking.",
+  ask:"Who can get into this office after hours?",
+  push:{owner:"Who's going to see it back here? We're a small office.",h:"small"},
+  ok:"Just the staff meeting and supply reminders. Nothing to raise."},
+ {id:"b-teamviewer",room:"backoffice",sev:"High",cat:"save",cost:2,pattern:true,sb:"pw",label:"Note on the office monitor",
+  title:"Remote access ID and password on a sticky",
+  see:"A sticky note on the monitor gives the IT provider's TeamViewer ID and password ({TVPW}).",
+  why:"Anyone with these can remote into this PC from anywhere. Unattended remote access without MFA is a common ransomware entry point, and it raises whether the IT provider has signed a BAA.",
+  ref:"HIPAA 164.312(d) person or entity authentication; 164.308(b)(1) business associate contracts",
+  contain:"Take the note down today.",
+  say:"Your IT provider's remote access login is on a sticky note, so anyone who reads it can get into this computer from anywhere. I'd take the note down today. How remote access should work, and whether you have a BAA with your IT provider, is one I'd want to look at properly.",
+  fix:"Remove the note, rotate the password, require MFA and per-session approval on remote access, and get a signed BAA from the IT provider.",
+  ask:"Do you have a signed BAA with your IT provider?",
+  push:{owner:"{IT} needs that to fix things when we call him.",h:"it"},
+  ok:"No notes on the monitor. Nothing to raise."},
+ {id:"b-backup",room:"backoffice",sev:"High",cat:"save",cost:2,label:"Server under the desk",
+  title:"Backup drive sits on top of the server",
+  see:"An external drive labeled BACKUP sits on the server under the desk, both plugged into the same power strip.",
+  why:"Ransomware, a spill, a surge, or a break-in takes out both at once. A backup next to the original is not a recovery plan.",
+  ref:"HIPAA 164.308(a)(7)(ii)(A) data backup plan; (B) disaster recovery plan",
+  say:"Your backup drive sits on top of the server, on the same power strip. Ransomware, a power surge, or a break-in would likely take out both. The right backup setup depends on your systems and how fast you need to be back up, so that's one I'd look at properly.",
+  fix:"Keep an offsite or immutable cloud copy, put the server on a UPS, test a restore at least twice a year, and write down how long recovery takes.",
+  ask:"When did you last restore something from that backup?",
+  push:{owner:"We back up every night. We're covered.",h:"covered"},
+  ok:"The server has a small UPS and a label: Cloud backup, nightly. Nothing to raise."},
+ {id:"b-router",room:"backoffice",sev:"High",cat:"save",cost:2,service:"Network Config Review",label:"Router on the shelf",
+  title:"Home router with the factory login",
+  see:"A home-grade router on the shelf still carries a label reading admin / password.",
+  why:"If the admin login was never changed, anyone on the network, including the guest Wi-Fi, can change its settings. Home routers also rarely get firmware updates.",
+  ref:"HIPAA 164.308(a)(1)(ii)(B) risk management; CIS Control 4 secure configuration",
+  say:"The router back here looks like a home model, and the label suggests it may still have its factory login. If so, anyone on your network could change its settings. Checking and hardening it depends on your network setup, so it's one I'd look at properly in a network configuration review.",
+  fix:"Change the admin credentials, update firmware, disable remote management and WPS, and plan a move to a business-grade firewall.",
+  ask:"Who set up the router, and has anyone logged into it since?",
+  push:{owner:"Who would bother with a dentist's router?",h:"small"},
+  ok:"Business firewall with an asset tag. Nothing to raise."},
+ {id:"b-cabinet",room:"backoffice",sev:"Medium",cat:"give",cost:1,label:"Filing cabinet",
+  title:"Records cabinet open with the key in the lock",
+  see:"The cabinet holding patient files and personnel records has its key in the lock and the top drawer pulled open.",
+  why:"A lock with the key in it isn't a lock. Paper PHI and employee records with SSNs are both exposed.",
+  ref:"HIPAA 164.530(c) safeguards; 164.310(a)(1) facility access controls",
+  say:"The records cabinet had the key in it. Keeping that key on the office manager's ring closes it right away.",
+  fix:"Lock the cabinet, keep the key with the office manager, and keep personnel files in a separate locked drawer.",
+  ask:"Who else has a key to this cabinet?",
+  push:{owner:"The office door's usually shut anyway.",h:"covered"},
+  conduct:{btn:"Open the drawer to see what's inside",title:"Don't open their files",why:"Opening the drawer means viewing PHI and personnel records you have no authorization to see. Note that the key was in the lock and leave it there."},
+  ok:"The cabinet is closed and locked. Nothing to raise."},
+ {id:"b-phish",room:"backoffice",sev:"Medium",cat:"give",cost:1,sb:"train",service:"Staff Security Awareness Training",label:"Printed email on the desk",
+  title:"Phishing email printed and circled",
+  see:"A printed email says the Microsoft 365 password expires today, with the link circled in pen.",
+  why:"Someone took a phishing lure seriously enough to print it and plan to act on it. That's a training signal more than a one-off.",
+  ref:"HIPAA 164.308(a)(5) security awareness and training",
+  say:"Someone printed this password-expiry email and circled the link, which tells me it nearly worked. It's a common phishing lure. A short awareness session for the team pays off fast, and that's something I can help with.",
+  fix:"Confirm nobody entered credentials (reset if unsure), run phishing awareness training, and set up a simple way for staff to report suspicious emails.",
+  ask:"Did anyone click that link or call about it?",
+  push:{owner:"We're too small for anyone to phish us.",h:"small"},
+  ok:"Just a supply invoice. Nothing to raise."},
+ {id:"b-unattended",room:"backoffice",sev:"Medium",cat:"give",cost:1,sb:"train",label:"Office PC",
+  title:"Office PC unlocked and unattended",
+  see:"The office manager's PC is unlocked with email and the payroll portal open, and a note on the chair says Back at 1.",
+  why:"Anyone passing through can read email, change payroll deposits, or send mail as the practice.",
+  ref:"HIPAA 164.312(a)(2)(iii) automatic logoff; 164.310(b) workstation use",
+  say:"The office PC was unlocked with email and payroll open and nobody around. Locking the screen whenever you step away, plus a short automatic lock, closes that today.",
+  fix:"Train the lock-when-you-leave habit, set a short automatic lock by policy, and turn on MFA for payroll and email.",
+  ask:"How long before that screen locks on its own?",
+  push:{owner:"The office door's usually shut.",h:"covered"},
+  conduct:{btn:"Sit down and check what this account can access",title:"Don't use their session",why:"Using someone's logged-in session, even just to look, is unauthorized access. Note it and move on."},
+  ok:"The PC shows the lock screen. Nothing to raise."}
+];
+const FIND = Object.fromEntries(FINDINGS.map(f=>[f.id,f]));
+
+const DECOYS = {
+ "r-npp":{label:"Framed notice",title:"Notice of Privacy Practices",note:"This is what you want to see. HIPAA requires it posted in a clear, prominent spot."},
+ "r-keypad":{label:"Keypad on the staff door",title:"Keypad lock on the staff door",note:"A good control. The follow-up question: how often does the code change, and do former staff still know it?"},
+ "r-terminal":{label:"Card terminal",title:"Chip card terminal",note:"Normal. A sharp follow-up is whether anyone checks it for tampering, which PCI DSS v4.0.1 Req. 9.5 covers."},
+ "r-camera":{label:"Ceiling camera",title:"Security camera",note:"Fine. Worth asking where footage is stored and whether the camera can see screens."},
+ "r-plant":{label:"Plant",title:"A plant",note:"Just a plant. Not everything in the room is a finding."},
+ "r-denise":{label:"Denise, office manager",title:"Denise",note:""},
+ "r-mug":{label:"Coffee mug",title:"Coffee mug",note:"Someone's coffee. Nothing here."},
+ "h-shred":{label:"Shred console",title:"Locked shred console",note:"Exactly what you want to see."},
+ "h-sanitizer":{label:"Sanitizer",title:"Hand sanitizer",note:"Infection control, not information security."},
+ "h-ext":{label:"Fire extinguisher",title:"Fire extinguisher",note:"Life safety equipment. Out of scope for this walkthrough."},
+ "h-art":{label:"Framed print",title:"Framed print",note:"Decor. Nothing here."},
+ "o-sharps":{label:"Sharps container",title:"Sharps container",note:"Clinical safety, out of scope."},
+ "o-pouches":{label:"Sterilization pouches",title:"Sterilization pouches",note:"Clinical workflow, out of scope."},
+ "o-gloves":{label:"Glove box",title:"Glove box",note:"Nothing here for you."},
+ "i-apron":{label:"Lead apron",title:"Lead apron",note:"Radiation safety, out of scope."},
+ "i-sign":{label:"Radiation sign",title:"X-ray warning sign",note:"Required signage, out of scope for you."},
+ "i-pano":{label:"Pano unit",title:"Panoramic X-ray unit",note:"The machine itself is fine. The computer that runs it is where to look."},
+ "b-cert":{label:"Framed certificate",title:"HIPAA training certificate",note:"Good to see. Ask whether every staff member completed it this year, not just the manager."},
+ "b-calendar":{label:"Wall calendar",title:"Wall calendar",note:"Nothing sensitive on it."},
+ "b-safe":{label:"Safe",title:"Locked safe",note:"Fine. You might ask whether the bank info belongs in here instead of a drawer."}
+};
+
+/* name pools for the run roster */
+const FIRST = ["Maria","James","Aisha","Daniel","Rosa","Tyrone","Mei","Carlos","Hannah","Omar","Priya","Kevin","Lucia","Marcus","Grace","Andre","Sofia","Ethan","Nadia","Victor"];
+const LAST = ["Lopez","Carter","Rahman","Kim","Patel","Nguyen","Brooks","Garcia","Okafor","Hughes","Ramirez","Sullivan","Chen","Washington","Morales","Bennett","Ali","Foster","Reyes","Coleman"];
+const PW_WORDS = ["Smile","Brightline","Tooth","Floss","Molar","Bright"];
+const SEASONS = ["Spring","Summer","Autumn","Winter"];
+const IT_NAMES = ["Mike","Rick","Dave","Tony"];
+
+/* ================= OFFICE SOUNDS (generated, no files) ================= */
+const Sound = (()=>{
+  let ctx=null, master=null, hvacGain=null, timer=null, room='reception', on=false;
+  const MIX={ /* hvac level and event weights [event, weight, distance 0..1] */
+    plan:{hvac:.22,ev:[['keys',2,.35],['phone',1,.3],['drill',1,.2]]},
+    reception:{hvac:.24,gap:[1200,4200],ev:[['keys',4,.8],['phone',2.2,.9],['chatter',3.5,.8],['printer',.8,.7],['drill',.6,.18],['door',.8,.6]]},
+    hallway:{hvac:.2,ev:[['drill',2.5,.45],['suction',1.5,.4],['chatter',1.2,.35],['keys',1,.3],['phone',1,.35],['door',1,.7]]},
+    operatory:{hvac:.18,ev:[['drill',3,1],['suction',3,.9],['beep',2,.8],['phone',.4,.15]]},
+    imaging:{hvac:.2,ev:[['pano',1.4,1],['beep',1,.6],['drill',1.4,.3],['phone',.5,.2]]},
+    backoffice:{hvac:.26,ev:[['keys',4,.9],['printer',1,.6],['phone',1,.4],['chatter',.8,.3],['drill',.6,.15]]}
+  };
+  function noiseBuf(brown){const len=ctx.sampleRate*4,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);let last=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;if(brown){last=(last+.02*w)/1.02;d[i]=last*3.5}else d[i]=w}return b}
+  let WHITE,BROWN;
+  function noise(buf,loop){const s=ctx.createBufferSource();s.buffer=buf;s.loop=!!loop;return s}
+  function env(g,t,a,hold,r,peak){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.setValueAtTime(peak,t+a+hold);g.gain.linearRampToValueAtTime(0,t+a+hold+r)}
+  function muffle(node,dist){const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=600+dist*7000;node.connect(lp);return lp}
+  const EV={
+    keys(dist){let t=ctx.currentTime+.05;const n=6+Math.floor(Math.random()*18);for(let i=0;i<n;i++){const s=noise(WHITE),hp=ctx.createBiquadFilter(),g=ctx.createGain();hp.type='bandpass';hp.frequency.value=2500+Math.random()*1500;hp.Q.value=1.5;s.connect(hp);hp.connect(g);muffle(g,dist).connect(master);env(g,t,.002,.006,.02,.18*dist);s.start(t,Math.random()*3);s.stop(t+.05);t+=.07+Math.random()*.16;if(Math.random()<.12)t+=.3}},
+    phone(dist){/* multi-line office phone trill, often answered */const t0=ctx.currentTime+.05,rings=1+Math.floor(Math.random()*3);for(let r=0;r<rings;r++){const t=t0+r*2.6,o=ctx.createOscillator(),g=ctx.createGain(),am=ctx.createOscillator(),ag=ctx.createGain(),sw=ctx.createOscillator(),sg=ctx.createGain();o.type='triangle';o.frequency.value=1150;sw.type='square';sw.frequency.value=16;sg.gain.value=120;sw.connect(sg);sg.connect(o.frequency);am.frequency.value=16;ag.gain.value=.01*dist;am.connect(ag);ag.connect(g.gain);o.connect(g);muffle(g,dist).connect(master);env(g,t,.02,.9,.06,.03*dist);[o,sw,am].forEach(n=>{n.start(t);n.stop(t+1.05)})}if(dist>.6&&Math.random()<.6)setTimeout(()=>on&&EV.chatter(dist,true),(rings*2.6+.4)*1000)},
+    chatter(dist,single){/* soft, muffled conversation: formant-filtered voices, not intelligible */const voices=single?1:1+Math.floor(Math.random()*2);for(let v=0;v<voices;v++){let t=ctx.currentTime+.05+v*(0.6+Math.random()*1.4);const f0=v%2?185+Math.random()*50:105+Math.random()*35,len=1.6+Math.random()*3,o=ctx.createOscillator(),f1=ctx.createBiquadFilter(),f2=ctx.createBiquadFilter(),mix=ctx.createGain(),g=ctx.createGain(),lp=ctx.createBiquadFilter(),br=noise(WHITE),bg=ctx.createGain(),bf=ctx.createBiquadFilter();
+      o.type='sawtooth';f1.type='bandpass';f1.Q.value=5;f2.type='bandpass';f2.Q.value=7;o.connect(f1);o.connect(f2);f1.connect(mix);f2.connect(mix);bf.type='bandpass';bf.frequency.value=2500;bf.Q.value=1;br.connect(bf);bf.connect(bg);bg.gain.value=.15;bg.connect(mix);
+      lp.type='lowpass';lp.frequency.value=900+dist*1300;mix.connect(g);g.connect(lp);lp.connect(master);g.gain.setValueAtTime(0,t);
+      const end=t+len;let s=t;while(s<end){const d=.1+Math.random()*.16,amp=(.05+Math.random()*.05)*dist;o.frequency.setValueAtTime(f0*(.9+Math.random()*.25),s);o.frequency.linearRampToValueAtTime(f0*(.85+Math.random()*.25),s+d);f1.frequency.setValueAtTime(300+Math.random()*500,s);f2.frequency.setValueAtTime(900+Math.random()*1300,s);g.gain.linearRampToValueAtTime(amp,s+d*.35);g.gain.linearRampToValueAtTime(amp*.25,s+d*.9);s+=d;if(Math.random()<.14){g.gain.linearRampToValueAtTime(0,s+.05);s+=.18+Math.random()*.3}}
+      g.gain.linearRampToValueAtTime(0,end+.1);o.frequency.linearRampToValueAtTime(f0*.8,end);o.start(t);br.start(t,Math.random()*3);o.stop(end+.2);br.stop(end+.2)}},
+    printer(dist){const t=ctx.currentTime+.05,s=noise(WHITE,true),bp=ctx.createBiquadFilter(),g=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain();bp.type='bandpass';bp.frequency.value=700;bp.Q.value=2;lfo.frequency.value=11;lg.gain.value=.03*dist;lfo.connect(lg);lg.connect(g.gain);s.connect(bp);bp.connect(g);muffle(g,dist).connect(master);env(g,t,.2,2.4,.4,.05*dist);s.start(t);lfo.start(t);s.stop(t+3.2);lfo.stop(t+3.2)},
+    drill(dist){let t=ctx.currentTime+.05;const bursts=2+Math.floor(Math.random()*3);for(let i=0;i<bursts;i++){const len=.4+Math.random()*1.4,o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=ctx.createGain(),base=2600+Math.random()*700;o.type='sawtooth';o.frequency.setValueAtTime(base*.7,t);o.frequency.exponentialRampToValueAtTime(base,t+.15);o.frequency.setValueAtTime(base,t+len);o.frequency.exponentialRampToValueAtTime(base*.6,t+len+.2);bp.type='bandpass';bp.frequency.value=base;bp.Q.value=6;o.connect(bp);bp.connect(g);muffle(g,dist).connect(master);env(g,t,.12,len,.25,.05*dist*dist+.004);o.start(t);o.stop(t+len+.5);t+=len+.4+Math.random()*1.2}},
+    suction(dist){const t=ctx.currentTime+.05,len=1.2+Math.random()*2.5,s=noise(WHITE,true),bp=ctx.createBiquadFilter(),g=ctx.createGain();bp.type='bandpass';bp.frequency.value=1100+Math.random()*400;bp.Q.value=.7;s.connect(bp);bp.connect(g);muffle(g,dist).connect(master);env(g,t,.25,len,.4,.06*dist);s.start(t);s.stop(t+len+.8)},
+    beep(dist){const t=ctx.currentTime+.05,o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=Math.random()<.5?880:1040;o.connect(g);muffle(g,dist).connect(master);env(g,t,.005,.07,.03,.03*dist);o.start(t);o.stop(t+.15)},
+    pano(dist){const t=ctx.currentTime+.05,o=ctx.createOscillator(),lp=ctx.createBiquadFilter(),g=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(70,t);o.frequency.linearRampToValueAtTime(110,t+2);lp.type='lowpass';lp.frequency.value=400;o.connect(lp);lp.connect(g);g.connect(master);env(g,t,.8,8,1,.05*dist);o.start(t);o.stop(t+10.2);EV.beep(dist);setTimeout(()=>on&&EV.beep(dist),10000)},
+    door(dist){const t=ctx.currentTime+.05,s=noise(BROWN),lp=ctx.createBiquadFilter(),g=ctx.createGain();lp.type='lowpass';lp.frequency.value=250;s.connect(lp);lp.connect(g);g.connect(master);env(g,t,.005,.04,.25,.35*dist);s.start(t);s.stop(t+.4)}
+  };
+  function schedule(){clearTimeout(timer);if(!on)return;timer=setTimeout(()=>{if(!on||!ctx)return;const m=MIX[room]||MIX.reception,tot=m.ev.reduce((a,e)=>a+e[1],0);let r=Math.random()*tot;for(const e of m.ev){r-=e[1];if(r<=0){try{EV[e[0]](e[2])}catch(err){}break}}schedule()},(()=>{const gp=(MIX[room]||{}).gap||[2500,9000];return gp[0]+Math.random()*(gp[1]-gp[0])})())}
+  function build(){
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    ctx=new AC();master=ctx.createGain();master.gain.value=0;master.connect(ctx.destination);
+    WHITE=noiseBuf(false);BROWN=noiseBuf(true);
+    const h=noise(BROWN,true),lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=320;hvacGain=ctx.createGain();hvacGain.gain.value=MIX[room].hvac;h.connect(lp);lp.connect(hvacGain);hvacGain.connect(master);h.start();
+    const hum=ctx.createOscillator(),hg=ctx.createGain();hum.frequency.value=120;hg.gain.value=.006;hum.connect(hg);hg.connect(master);hum.start();
+    return true;
+  }
+  return {
+    start(){try{if(!ctx&&!build())return;on=true;ctx.resume();master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(.55,ctx.currentTime,.6);schedule()}catch(e){}},
+    stop(){on=false;clearTimeout(timer);try{if(ctx){master.gain.setTargetAtTime(0,ctx.currentTime,.2);setTimeout(()=>{if(!on&&ctx)ctx.suspend()},600)}}catch(e){}},
+    setRoom(k){room=MIX[k]?k:'reception';try{if(ctx&&hvacGain)hvacGain.gain.setTargetAtTime(MIX[room].hvac,ctx.currentTime,.8)}catch(e){}},
+    play(name,dist=1){if(ctx&&EV[name])EV[name](dist)},
+    get on(){return on}
+  };
+})();
+
+/* ================= SCENE ART ================= */
+const W = 1200, H = 720;
+const PLAN_RECT = {operatory:[60,40,410,280], backoffice:[610,40,530,280], hallway:[60,320,1080,100], reception:[60,420,440,270], imaging:[500,420,300,270]};
+const BG = {plan:['#e9eef1','#e9eef1',0], reception:['#cfdcd6','#c8aa80',480], hallway:['#d4dad1','#c2b598',480], operatory:['#d2e0df','#d8d1c4',480], imaging:['#d5dbe0','#cdd3d7',480], backoffice:['#ddd3c2','#8c97a0',480]};
+
+const pn = i => R().P[i];                       // patient i (1-based)
+const full = i => `${pn(i).f} ${pn(i).l}`;
+const init = i => `${pn(i).f[0]}. ${pn(i).l}`;
+const lastF = i => `${pn(i).l.toUpperCase()}, ${pn(i).f[0]}`;
+
+function navBadge(x,y,label,go,dir){
+  const chev = dir==="left" ? `<path d="M${x-52} ${y-7} l-8 7 l8 7" fill="none" stroke="#D4A04C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`
+                            : `<path d="M${x+52} ${y-7} l8 7 l-8 7" fill="none" stroke="#D4A04C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<g data-go="${go}" tabindex="0" role="button" aria-label="Walk to ${label}" filter="url(#ds)"><rect x="${x-76}" y="${y-23}" width="152" height="46" rx="23" fill="#011138" stroke="#D4A04C" stroke-width="2"/><text x="${x+(dir==='left'?6:-6)}" y="${y+6}" text-anchor="middle" font-size="17" font-weight="600" fill="#fff">${label}</text>${chev}</g>`;
+}
+function obj(id,inner){
+  const d = FIND[id]||DECOYS[id];
+  return `<g data-id="${id}" tabindex="0" role="button" aria-label="${d?d.label:'Item'}">${inner}</g>`;
+}
+const shadow=(cx,cy,rx,ry=8,o=.16)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#1b2430" opacity="${o}"/>`;
+
+/* shared room shell: lit wall, ceiling, baseboard, perspective floor */
+function shell(o){
+  const VP={x:600,y:150};
+  let lines='';
+  for(let xb=-1400; xb<=2600; xb+=o.tile||110){const xt=VP.x+(xb-VP.x)*(480-VP.y)/(720-VP.y);lines+=`<path d="M${xt.toFixed(1)} 480L${xb} 720" stroke="${o.floorLine}" stroke-width="1.2" opacity=".55"/>`;}
+  if(o.rows!==false){for(let i=1;i<7;i++){const y=480+240*Math.pow(i/7,1.5);lines+=`<path d="M-1400 ${y.toFixed(1)}H2600" stroke="${o.floorLine}" stroke-width="1.2" opacity=".5"/>`;}}
+  const lights=(o.lights||[300,900]).map(x=>`<ellipse cx="${x}" cy="40" rx="260" ry="230" fill="url(#lp)"/><rect x="${x-60}" y="14" width="120" height="8" rx="2" fill="#fbfaf2" stroke="#d6d3c4"/>`).join('');
+  return `<defs>
+    <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o.wallTop}"/><stop offset="1" stop-color="${o.wallBot}"/></linearGradient>
+    <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o.floorFar}"/><stop offset="1" stop-color="${o.floorNear}"/></linearGradient>
+    <radialGradient id="lp"><stop offset="0" stop-color="#fffdf2" stop-opacity=".55"/><stop offset="1" stop-color="#fffdf2" stop-opacity="0"/></radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".35"/><stop offset=".5" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect x="-1400" y="0" width="4000" height="480" fill="url(#wg)"/>
+  ${lights}
+  <rect x="-1400" y="0" width="4000" height="14" fill="${o.ceiling}"/>
+  <rect x="-1400" y="14" width="4000" height="3" fill="#000" opacity=".06"/>
+  <rect x="-1400" y="480" width="4000" height="240" fill="url(#fg)"/>
+  ${lines}
+  <rect x="-1400" y="466" width="4000" height="16" fill="${o.base}"/>
+  <rect x="-1400" y="480" width="4000" height="10" fill="#000" opacity=".07"/>`;
+}
+
+function door(x,y,w,h,col,frame){
+  return `<rect x="${x-8}" y="${y-8}" width="${w+16}" height="${h+8}" fill="${frame}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${col}"/>
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#glass)" opacity=".5"/>
+  <rect x="${x+16}" y="${y+24}" width="${w-32}" height="${h*.3}" fill="none" stroke="#000" stroke-opacity=".08" stroke-width="3"/>
+  <rect x="${x+16}" y="${y+h*.45}" width="${w-32}" height="${h*.45}" fill="none" stroke="#000" stroke-opacity=".08" stroke-width="3"/>
+  <rect x="${x+w-26}" y="${y+h/2}" width="16" height="6" rx="3" fill="#7a6a52"/>`;
+}
+function plaque(x,y,w,txt,fill){
+  return `<rect x="${x}" y="${y}" width="${w}" height="24" rx="3" fill="${fill}"/><text x="${x+w/2}" y="${y+16.5}" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">${txt}</text>`;
+}
+function paper(x,y,w,h,rot,inner='',fill='#fdfdfb'){
+  return `<g transform="rotate(${rot} ${x+w/2} ${y+h/2})"><rect x="${x+1.5}" y="${y+2}" width="${w}" height="${h}" fill="#000" opacity=".12"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="#d8d8d2" stroke-width=".8"/>${inner}</g>`;
+}
+function lines(x,y,w,n,gap=4,c='#cfd2d6'){let s='';for(let i=0;i<n;i++)s+=`<rect x="${x}" y="${y+i*gap}" width="${w*(i%3==2?.6:1)}" height="1.6" fill="${c}"/>`;return s}
+
+const SCENES = {
+/* ---------------- FLOOR PLAN ---------------- */
+plan(){
+  const room=(key,r,label)=>`<g data-room="${key}" tabindex="0" role="button" aria-label="Walk into ${label}"><rect class="roomfill" x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" fill="#ffffff" stroke="#1d2a33" stroke-width="6"/><text x="${r[0]+22}" y="${r[1]+40}" font-size="22" font-weight="700" fill="#011138">${label}</text><text id="pc-${key}" x="${r[0]+22}" y="${r[1]+64}" font-size="15" fill="#5a6479"></text></g>`;
+  let grid=''; for(let x=-1200;x<=2400;x+=40) grid+=`<path d="M${x} -1200V1920" stroke="#d7dee3" stroke-width="1"/>`; for(let y=-1200;y<=1920;y+=40) grid+=`<path d="M-1200 ${y}H2400" stroke="#d7dee3" stroke-width="1"/>`;
+  return `${grid}
+  ${room('operatory',PLAN_RECT.operatory,'Operatory 1')}
+  <g data-room="hallway" tabindex="0" role="button" aria-label="Walk to the hallway"><rect class="roomfill" x="470" y="40" width="140" height="280" fill="#f4f6f8" stroke="#1d2a33" stroke-width="6"/><text x="540" y="84" text-anchor="middle" font-size="16" font-weight="700" fill="#011138">IT closet</text></g>
+  ${room('backoffice',PLAN_RECT.backoffice,'Back office')}
+  ${room('hallway',PLAN_RECT.hallway,'Hallway')}
+  ${room('reception',PLAN_RECT.reception,'Reception')}
+  ${room('imaging',PLAN_RECT.imaging,'Imaging room')}
+  <rect x="800" y="420" width="340" height="270" fill="#dde3e7" stroke="#1d2a33" stroke-width="6"/>
+  <text x="822" y="460" font-size="18" font-weight="700" fill="#7a8592">Operatory 2</text>
+  <text x="822" y="484" font-size="15" fill="#7a8592">Closed today</text>
+  <rect x="200" y="684" width="110" height="12" fill="#e9eef1"/>
+  <text x="255" y="712" text-anchor="middle" font-size="14" fill="#5a6479">Front entrance</text>
+  <rect x="1132" y="345" width="12" height="50" fill="#e9eef1"/>`;
+},
+
+/* ---------------- RECEPTION ---------------- */
+reception(){
+  const r=R(), on=A;
+  let chairs=''; for(let i=0;i<3;i++){const x=24+i*86; chairs+=`${shadow(x+40,700,46,7)}<rect x="${x}" y="566" width="80" height="62" rx="10" fill="#4b827b"/><rect x="${x}" y="566" width="80" height="18" rx="9" fill="#5a948d"/><rect x="${x}" y="620" width="80" height="26" rx="8" fill="#3c6c66"/><rect x="${x+8}" y="646" width="6" height="52" fill="#4f5458"/><rect x="${x+66}" y="646" width="6" height="52" fill="#4f5458"/>`;}
+  const sched=[["8:00",full(1),"Crown prep"],["9:00",full(2),"Extraction"],["10:30",full(3),"Perio maint."],["11:15",full(4),"Root canal"],["1:00",full(5),"Biopsy f/u"]];
+  const screenOn=on('r-screen');
+  const monitor = `<rect x="384" y="216" width="196" height="140" rx="7" fill="#1f2328"/>
+    ${screenOn?`<rect x="393" y="225" width="178" height="120" fill="#f7fbff"/><rect x="393" y="225" width="178" height="16" fill="#2c5aa0"/><text x="399" y="237" font-size="9" font-weight="600" fill="#fff">Schedule   ${r.day}</text>
+      ${sched.map((s,i)=>`<text x="398" y="${256+i*17}" font-size="8" fill="#223">${s[0]}</text><text x="424" y="${256+i*17}" font-size="8" font-weight="600" fill="#223">${s[1]}</text><text x="512" y="${256+i*17}" font-size="7.6" fill="#445">${s[2]}</text>`).join('')}`
+    :`<rect x="393" y="225" width="178" height="120" fill="#0d1014"/><rect x="393" y="225" width="178" height="120" fill="url(#glass)" opacity=".5"/>`}
+    <rect x="472" y="356" width="20" height="18" fill="#2a2e33"/><rect x="452" y="372" width="60" height="8" rx="3" fill="#2a2e33"/>`;
+  return `${shell({wallTop:'#e8f0ec',wallBot:'#d3e0da',floorFar:'#ad8d66',floorNear:'#c8aa80',floorLine:'#9b7d58',ceiling:'#cfdcd6',base:'#a9bfb7',lights:[260,640,1000],tile:90})}
+  <text x="600" y="78" text-anchor="middle" font-size="30" font-weight="700" fill="#2f6b62" opacity=".92">Brightline Family Dental</text>
+  <text x="600" y="102" text-anchor="middle" font-size="14" fill="#4f837a">General and family dentistry</text>
+  ${obj('r-camera',`<rect x="672" y="14" width="22" height="6" fill="#9aa5a3"/><path d="M668 20 h30 a15 15 0 0 1 -30 0z" fill="#2b3036"/><circle cx="683" cy="27" r="4" fill="#59616c"/>`)}
+  <g data-go="hallway" tabindex="-1">${door(60,160,150,306,'#a9c3bc','#8fa9a1')}</g>${plaque(80,196,110,'Staff only','#2f6b62')}
+  ${obj('r-keypad',`<rect x="222" y="292" width="24" height="38" rx="3" fill="#30363d"/>${[0,1,2].map(rr=>[0,1].map(c=>`<rect x="${227+c*8}" y="${298+rr*9}" width="5" height="5" fill="#9aa3ad"/>`).join('')).join('')}`)}
+  ${obj('r-tv',`<rect x="752" y="112" width="210" height="122" rx="4" fill="#15181c" filter="url(#ds)"/><rect x="758" y="118" width="198" height="110" fill="#3f8a86"/><circle cx="800" cy="168" r="26" fill="#e8f3ef" opacity=".9"/><path d="M790 160 q10 -14 20 0 q-2 22 -6 22 q-4 -10 -8 0 q-4 0 -6 -22z" fill="#3f8a86"/><text x="836" y="162" font-size="11" font-weight="700" fill="#fff">Ask about</text><text x="836" y="178" font-size="11" font-weight="700" fill="#fff">whitening</text>
+    ${on('r-tv')?`<rect x="864" y="196" width="86" height="26" rx="3" fill="#111" opacity=".85"/><text x="870" y="207" font-size="6.4" fill="#e6e6e6">Wi-Fi: Connected to</text><text x="870" y="216.5" font-size="6.4" font-weight="600" fill="#ffffff">${r.ssid}</text>`:''}<rect x="758" y="118" width="198" height="110" fill="url(#glass)" opacity=".4"/>`)}
+  ${obj('r-wifi',`<rect x="988" y="150" width="78" height="58" fill="#7a5a3a" filter="url(#ds)"/><rect x="993" y="155" width="68" height="48" fill="#fbfaf6"/><text x="1027" y="168" text-anchor="middle" font-size="8.5" font-weight="700" fill="#2f6b62">Patient Wi-Fi</text><text x="1027" y="181" text-anchor="middle" font-size="5.6" fill="#333">${on('r-wifi')?r.ssid:r.ssid+'-Guest'}</text><text x="1027" y="192" text-anchor="middle" font-size="5.6" fill="#333">pw: ${on('r-wifi')?r.wifi:'Welcome-'+r.gcode}</text>`)}
+  ${obj('r-npp',`<rect x="1092" y="140" width="88" height="122" fill="#7a5a3a" filter="url(#ds)"/><rect x="1098" y="146" width="76" height="110" fill="#fdfcf8"/><text x="1136" y="162" text-anchor="middle" font-size="7.5" font-weight="700" fill="#222">Notice of Privacy</text><text x="1136" y="172" text-anchor="middle" font-size="7.5" font-weight="700" fill="#222">Practices</text>${lines(1104,182,64,9,8,'#cfcfcf')}`)}
+  <!-- back wall behind desk: staff workstation -->
+  ${obj('r-screen',monitor)}
+  ${on('r-sticky')?obj('r-sticky',`<g transform="rotate(-9 566 350)"><rect x="548" y="337" width="38" height="28" fill="#f3df7a"/><rect x="548" y="337" width="38" height="5" fill="#e8d264"/><text class="hand" x="567" y="352" text-anchor="middle" font-size="7.5" font-weight="700" fill="#2a2a2a">pw:</text><text class="hand" x="567" y="361" text-anchor="middle" font-size="7" font-weight="700" fill="#2a2a2a">${r.desk}</text></g>`):''}
+  <!-- counter -->
+  <rect x="284" y="378" width="632" height="18" rx="2" fill="#f1ede4"/>
+  <rect x="284" y="394" width="632" height="4" fill="#000" opacity=".12"/>
+  <rect x="294" y="396" width="612" height="200" fill="#8b6b4c"/>
+  ${[354,414,474,534,594,654,714,774,834].map(x=>`<path d="M${x} 404V588" stroke="#79593d" stroke-width="2"/>`).join('')}
+  <rect x="294" y="396" width="612" height="200" fill="url(#glass)" opacity=".25"/>
+  ${shadow(600,604,320,10,.18)}
+  ${obj('r-denise',`<rect x="472" y="382" width="92" height="12" rx="2" fill="#2f3a46"/><text x="518" y="390.6" text-anchor="middle" font-size="6.2" font-weight="600" fill="#e8d7a8">Denise Moore, Office Manager</text>`)}
+  ${obj('r-fax',`<path d="M326 342 L332 318 H368 L372 342 Z" fill="#c9ccd0" stroke="#9fa3a8" stroke-width="1"/><rect x="336" y="320" width="28" height="3" fill="#9fa3a8"/>
+    <rect x="296" y="340" width="80" height="40" rx="5" fill="#e4e5e7" stroke="#a9acaf"/><rect x="296" y="340" width="80" height="6" rx="3" fill="#f1f2f3"/>
+    <rect x="298" y="336" width="24" height="9" rx="2" fill="#bfc3c7"/><path d="M297 332 h26 q3 0 3 4 v2 q0 3 -3 3 h-4 q-2 -3 -9 -3 q-7 0 -9 3 h-4 q-3 0 -3 -3 v-2 q0 -4 3 -4z" fill="#33373c"/>
+    <path d="M300 346 q-6 4 0 7 q6 3 0 7 q-6 3 0 7 q6 3 0 6" fill="none" stroke="#33373c" stroke-width="1.6"/>
+    <rect x="352" y="346" width="20" height="8" rx="1" fill="#9fc8a8" stroke="#6b8f74" stroke-width=".6"/><text x="362" y="352" text-anchor="middle" font-size="3.4" fill="#2c4a34">FAX</text>
+    ${[0,1,2,3].map(rr=>[0,1,2].map(c=>`<rect x="${353+c*6.4}" y="${357+rr*5}" width="4.8" height="3.2" rx=".6" fill="#7d838a"/>`).join('')).join('')}
+    <rect x="320" y="364" width="28" height="3" rx="1" fill="#41464c"/>
+    ${on('r-fax')?paper(334,368,28,20,7,`<text x="337" y="375" font-size="3.4" font-weight="700" fill="#222">INS. VERIFY</text><text x="337" y="380.5" font-size="3" fill="#333">${init(4)}</text><text x="337" y="385" font-size="3" fill="#333">ID ${r.mem}</text>`)+paper(308,364,32,22,-6,`<text x="311" y="371" font-size="3.8" font-weight="700" fill="#222">REFERRAL</text><text x="311" y="377" font-size="3.3" fill="#333">${full(6)}</text><text x="311" y="382" font-size="3.3" fill="#333">DOB ${pn(6).dob}</text>`):''}`)}
+  ${obj('r-terminal',`<rect x="594" y="342" width="40" height="40" rx="6" fill="#2b2f36"/><rect x="600" y="347" width="28" height="11" rx="2" fill="#6fb3a0"/>${[0,1,2].map(rr=>[0,1,2].map(c=>`<rect x="${601+c*9}" y="${362+rr*5.5}" width="7" height="3.2" fill="#8d96a0"/>`).join('')).join('')}`)}
+  ${obj('r-card',`${paper(640,354,64,26,-3,`<rect x="640" y="354" width="64" height="4" fill="#e9e3d0"/>`+(on('r-card')?`<text class="hand" x="644" y="366" font-size="6.6" font-weight="700" fill="#24408e">${r.card}</text><text class="hand" x="644" y="375" font-size="6.6" font-weight="700" fill="#24408e">exp ${r.exp}  cvv ${r.cvv}</text>`:`<text class="hand" x="644" y="368" font-size="6.4" fill="#24408e">call back re: ins.</text>`),'#fffef4')}<rect x="706" y="372" width="26" height="3.5" rx="2" fill="#24408e" transform="rotate(-18 719 373)"/>`)}
+  ${paper(612,372,24,8,4,'','#f6f0dc')}
+  ${obj('r-mug',`<rect x="738" y="356" width="18" height="24" rx="3" fill="#c0573f"/><path d="M756 362 q8 0 8 8 q0 6 -8 6" fill="none" stroke="#c0573f" stroke-width="3"/>`)}
+  ${obj('r-tablet',`<path d="M776 380 l8 -12 h28 l8 12z" fill="#4a4f57"/><g transform="rotate(-8 798 352)"><rect x="772" y="324" width="52" height="40" rx="4" fill="#1b1e22"/><rect x="776" y="328" width="44" height="32" fill="#f8fafc"/>
+    ${on('r-tablet')?`<rect x="776" y="328" width="44" height="6" fill="#2f6b62"/><text x="778" y="332.8" font-size="3.6" font-weight="600" fill="#fff">Health history</text><text x="778" y="339" font-size="3.4" font-weight="700" fill="#222">${full(2)}</text>${[0,1,2,3].map(i=>`<rect x="778" y="${342+i*4.4}" width="3" height="3" fill="${i%2?'#2f6b62':'#fff'}" stroke="#555" stroke-width=".4"/><rect x="783" y="${343+i*4.4}" width="${22+i*3}" height="1.4" fill="#9aa3ad"/>`).join('')}`
+    :`<text x="798" y="342" text-anchor="middle" font-size="5" font-weight="700" fill="#2f6b62">Welcome</text><rect x="785" y="347" width="26" height="7" rx="3.5" fill="#2f6b62"/><text x="798" y="352.4" text-anchor="middle" font-size="3.6" fill="#fff">Tap to check in</text>`}</g>`)}
+  ${obj('r-signin',`<rect x="836" y="318" width="66" height="62" rx="4" fill="#9c7448"/><rect x="858" y="313" width="22" height="9" rx="2" fill="#b9bec4"/><rect x="841" y="325" width="56" height="52" fill="#ffffff"/><text x="869" y="333" text-anchor="middle" font-size="5.4" font-weight="700" fill="#222">Patient sign-in</text>
+    ${on('r-signin')?`<text x="843" y="340" font-size="3.8" fill="#555">Name</text><text x="864" y="340" font-size="3.8" fill="#555">Time</text><text x="875" y="340" font-size="3.8" fill="#555">Reason for visit</text><path d="M842 342H896M842 351H896M842 360H896M842 369H896" stroke="#ccc" stroke-width=".6"/><text class="hand" x="843" y="349" font-size="5" fill="#1d3f8f">${init(1)}</text><text class="hand" x="864" y="349" font-size="5" fill="#1d3f8f">7:52</text><text class="hand" x="875" y="349" font-size="4.6" fill="#1d3f8f">crown</text><text class="hand" x="843" y="358" font-size="5" fill="#1d3f8f">${init(2)}</text><text class="hand" x="864" y="358" font-size="5" fill="#1d3f8f">8:51</text><text class="hand" x="875" y="358" font-size="4.6" fill="#1d3f8f">tooth pain</text>`
+    :`<text x="843" y="340" font-size="3.8" fill="#555">Name</text><text x="878" y="340" font-size="3.8" fill="#555">Time</text>${[0,1,2,3].map(i=>`<rect x="843" y="${343+i*8}" width="52" height="6" rx="1" fill="#eef1f4" stroke="#d5dae0" stroke-width=".5"/>`).join('')}`}`)}
+  <!-- printer cabinet -->
+  ${shadow(990,604,80,8,.18)}
+  <rect x="922" y="420" width="136" height="176" fill="#c7bfb2"/><path d="M990 430V586" stroke="#b1a897" stroke-width="2"/><rect x="922" y="420" width="136" height="176" fill="url(#glass)" opacity=".3"/>
+  ${obj('r-printer',`<rect x="934" y="350" width="114" height="16" rx="4" fill="#dcdee0" stroke="#b9bcbf"/><rect x="946" y="358" width="70" height="8" fill="#c3c6ca"/><rect x="950" y="358" width="62" height="2" fill="#5a5f66"/>
+    <rect x="932" y="364" width="118" height="56" rx="5" fill="#eceded" stroke="#b9bcbf"/><rect x="932" y="364" width="118" height="5" fill="#f6f6f7"/>
+    <rect x="1020" y="352" width="24" height="14" rx="2" fill="#2f3338" transform="rotate(-6 1032 359)"/><rect x="1024" y="355" width="12" height="6" fill="#7fd1a8" transform="rotate(-6 1032 359)"/><circle cx="1040" cy="359" r="1.6" fill="#56c08c"/>
+    <rect x="940" y="392" width="102" height="22" rx="2" fill="#e2e3e4" stroke="#c4c7ca"/><rect x="978" y="401" width="26" height="3.5" rx="1.5" fill="#8b9096"/>
+    ${on('r-printer')?paper(952,334,62,28,-4,`<text x="956" y="343" font-size="4.8" font-weight="700" fill="#222">PATHOLOGY REPORT</text><text x="956" y="350" font-size="4" fill="#333">${lastF(5)}  DOB ${pn(5).dob}</text><text x="956" y="356" font-size="4" fill="#333">Oral biopsy: see results</text>`):''}`)}
+  ${obj('r-plant',`${shadow(1150,600,38,6)}<path d="M1122 530h56l-6 66h-44z" fill="#b4583a"/><ellipse cx="1134" cy="470" rx="15" ry="46" fill="#4f8a4b" transform="rotate(-20 1134 470)"/><ellipse cx="1162" cy="462" rx="14" ry="50" fill="#5e9a58" transform="rotate(16 1162 462)"/><ellipse cx="1148" cy="456" rx="11" ry="56" fill="#467d43"/>`)}
+  ${chairs}
+  ${navBadge(140,524,'Hallway','hallway','right')}`;
+},
+
+/* ---------------- HALLWAY ---------------- */
+hallway(){
+  const r=R(), on=A;
+  return `${shell({wallTop:'#eef1ea',wallBot:'#dde2d8',floorFar:'#a99c80',floorNear:'#c2b598',floorLine:'#988b70',ceiling:'#d4dad1',base:'#b9c3b6',lights:[160,600,1040],tile:120})}
+  <g data-go="operatory" tabindex="-1">${door(90,170,150,296,'#c9b08a','#a78d66')}</g>
+  ${plaque(105,134,120,'Operatory 1','#2f6b62')}
+  ${obj('h-chart',`<rect x="252" y="252" width="46" height="88" rx="3" fill="#cfe3f0" fill-opacity=".7" stroke="#9db7c7" stroke-width="2"/><rect x="257" y="264" width="36" height="72" fill="#e9c77a"/>
+    ${on('h-chart')?`<rect x="259" y="256" width="38" height="12" fill="#e9c77a"/><text x="261" y="265" font-size="6" font-weight="700" fill="#4a3a14">${lastF(5)}</text><rect x="260" y="274" width="30" height="9" fill="#fff"/><text x="262" y="281" font-size="5" fill="#333">DOB ${pn(5).dob}</text>`:`<rect x="257" y="264" width="36" height="72" fill="#dcb766"/>`}`)}
+  ${obj('h-sanitizer',`<rect x="314" y="262" width="20" height="48" rx="4" fill="#f7f7f7" stroke="#b8c0c4"/><rect x="318" y="252" width="12" height="12" fill="#9aa5ab"/><rect x="317" y="280" width="14" height="14" fill="#7cc0d8"/>`)}
+  ${plaque(370,134,124,'IT / Electrical','#555c63')}
+  ${obj('h-closet', on('h-closet')?`<rect x="360" y="170" width="140" height="296" fill="#5b6570"/><rect x="368" y="178" width="124" height="288" fill="#1a2028"/><rect x="396" y="196" width="68" height="262" fill="#2a323c" stroke="#0e1217" stroke-width="2"/>${Array.from({length:9},(_,i)=>`<rect x="402" y="${204+i*27}" width="56" height="19" fill="#3a4450"/><circle cx="410" cy="${213+i*27}" r="2.4" fill="${i%3==1?'#f0b33a':'#4ade80'}"/><circle cx="417" cy="${213+i*27}" r="2.4" fill="#4ade80"/><rect x="426" y="${209+i*27}" width="26" height="3" fill="#151a20"/>`).join('')}<path d="M455 220 q30 70 10 150 M452 248 q24 60 4 140" stroke="#3b82f6" stroke-width="2.2" fill="none"/><path d="M450 300 q20 50 12 120" stroke="#eab308" stroke-width="2.2" fill="none"/><polygon points="492,178 546,196 546,452 492,466" fill="#a9b8b4" stroke="#8a9a95" stroke-width="2"/><polygon points="496,466 530,466 530,456" fill="#c48a2c"/>`
+    :`<rect x="352" y="162" width="156" height="304" fill="#7d878f"/><rect x="360" y="170" width="140" height="296" fill="#b7c0c4"/><rect x="360" y="170" width="140" height="296" fill="url(#glass)" opacity=".5"/><rect x="476" y="316" width="14" height="22" rx="3" fill="#56606a"/><circle cx="483" cy="324" r="3" fill="#c9a227"/><rect x="384" y="220" width="92" height="34" fill="#fff"/><text x="430" y="235" text-anchor="middle" font-size="8" font-weight="700" fill="#333">Authorized</text><text x="430" y="246" text-anchor="middle" font-size="8" font-weight="700" fill="#333">staff only</text>`)}
+  ${obj('h-art',`<rect x="572" y="200" width="118" height="84" fill="#5d4a36" filter="url(#ds)"/><rect x="578" y="206" width="106" height="72" fill="#cfe3e6"/><path d="M578 260 q30 -30 54 -6 q24 -26 52 0 v24 h-106z" fill="#7aa58a"/><circle cx="660" cy="228" r="9" fill="#f2d27a"/>`)}
+  ${obj('h-shred',`${shadow(596,470,40,5)}<rect x="560" y="350" width="72" height="116" rx="9" fill="#4a4f57"/><rect x="572" y="362" width="48" height="7" rx="2" fill="#1d2026"/><circle cx="596" cy="386" r="5" fill="#c9a227"/><text x="596" y="414" text-anchor="middle" font-size="8.5" font-weight="600" fill="#fff">Secure</text><text x="596" y="425" text-anchor="middle" font-size="8.5" font-weight="600" fill="#fff">shred</text>`)}
+  ${obj('h-recycle',`${shadow(676,470,36,5)}${on('h-recycle')?paper(650,362,42,30,-12,`<text x="653" y="371" font-size="4.6" font-weight="700" fill="#222">Appointment confirmation</text><text x="653" y="379" font-size="4.6" fill="#333">${full(4)}</text><text x="653" y="386" font-size="4.6" fill="#333">${r.md}, 11:15 root canal</text>`)+paper(672,370,34,24,9,`<text x="675" y="380" font-size="4.4" fill="#333">${init(1)} ${r.md}</text>`):`<rect x="652" y="372" width="40" height="24" fill="#c49a62" transform="rotate(-8 672 384)"/><rect x="676" y="378" width="28" height="18" fill="#e7e2d4" transform="rotate(10 690 387)"/>`}<polygon points="644,392 708,392 702,466 650,466" fill="#2f6fb4"/><text x="676" y="434" text-anchor="middle" font-size="9" font-weight="600" fill="#fff">Recycle</text>`)}
+  <g data-go="backoffice" tabindex="-1">${door(740,170,150,296,'#c9b08a','#a78d66')}</g>
+  ${plaque(755,134,120,'Office','#2f6b62')}
+  ${obj('h-ext',`<rect x="912" y="300" width="40" height="8" fill="#888"/><rect x="918" y="318" width="28" height="94" rx="10" fill="#c8312b"/><rect x="924" y="306" width="16" height="14" fill="#333"/><path d="M940 312 q18 6 10 40" stroke="#222" stroke-width="3" fill="none"/>`)}
+  ${obj('h-exit',`<rect x="1030" y="128" width="80" height="28" fill="#fff" stroke="#b8392b" stroke-width="2"/><text x="1070" y="149" text-anchor="middle" font-size="17" font-weight="700" fill="#b8392b">EXIT</text><rect x="982" y="162" width="176" height="304" fill="#6d777d"/>
+    ${on('h-exit')?`<rect x="1110" y="170" width="40" height="296" fill="#fff4cc"/><rect x="1110" y="400" width="40" height="66" fill="#9fc17d"/><polygon points="990,170 1110,170 1110,466 990,466" fill="#b7c2c7"/><rect x="1000" y="318" width="96" height="14" rx="4" fill="#8a959b"/><rect x="1006" y="220" width="84" height="40" fill="#b8392b"/><text x="1048" y="237" text-anchor="middle" font-size="7.5" font-weight="600" fill="#fff">Emergency exit only</text><text x="1048" y="250" text-anchor="middle" font-size="7.5" fill="#fff">Alarm will sound</text><polygon points="1104,426 1146,426 1140,466 1110,466" fill="#5c6469"/>`
+    :`<rect x="990" y="170" width="160" height="296" fill="#b7c2c7"/><rect x="1004" y="318" width="132" height="14" rx="4" fill="#8a959b"/><rect x="1028" y="220" width="84" height="40" fill="#b8392b"/><text x="1070" y="237" text-anchor="middle" font-size="7.5" font-weight="600" fill="#fff">Emergency exit only</text><text x="1070" y="250" text-anchor="middle" font-size="7.5" fill="#fff">Alarm will sound</text>`}`)}
+  ${navBadge(110,640,'Reception','reception','left')}
+  ${navBadge(165,524,'Operatory','operatory','right')}
+  ${navBadge(600,640,'Imaging','imaging','right')}
+  ${navBadge(815,524,'Office','backoffice','right')}`;
+},
+
+/* ---------------- OPERATORY ---------------- */
+operatory(){
+  const r=R(), on=A;
+  return `${shell({wallTop:'#eaf3f2',wallBot:'#d6e5e4',floorFar:'#c4bdb0',floorNear:'#d8d1c4',floorLine:'#b3ab9c',ceiling:'#d2e0df',base:'#bccfcd',lights:[420,860],tile:100})}
+  <rect x="958" y="108" width="184" height="224" fill="#cfe6f5" stroke="#f4f4f1" stroke-width="10"/>${Array.from({length:12},(_,i)=>`<rect x="963" y="${116+i*17}" width="174" height="9" fill="#f2f1ec"/>`).join('')}
+  <rect x="150" y="110" width="410" height="140" fill="#f4f4f1" stroke="#d2d2cc" stroke-width="3" filter="url(#ds)"/>${[252,355,458].map(x=>`<path d="M${x} 112V248" stroke="#d2d2cc" stroke-width="3"/>`).join('')}
+  <rect x="150" y="380" width="410" height="180" fill="#f4f4f1" stroke="#d2d2cc" stroke-width="3"/>${[252,355,458].map(x=>`<path d="M${x} 382V558" stroke="#d2d2cc" stroke-width="3"/>`).join('')}
+  <rect x="144" y="366" width="422" height="16" fill="#d8d3c8"/>${shadow(355,566,220,8)}
+  ${obj('o-gloves',`<rect x="168" y="336" width="72" height="30" fill="#5b8fd6"/><ellipse cx="204" cy="341" rx="18" ry="4" fill="#dfe9f7"/><text x="204" y="358" text-anchor="middle" font-size="8" fill="#fff">Nitrile M</text>`)}
+  ${obj('o-pouches',`${[0,1,2,3].map(i=>`<rect x="${388+i*3}" y="${346-i*5}" width="78" height="20" fill="#f6f3e8" stroke="#7aa6d6" stroke-width="1.5"/>`).join('')}`)}
+  ${obj('o-sharps',`<rect x="584" y="170" width="46" height="58" rx="4" fill="#d23a2e"/><rect x="584" y="170" width="46" height="11" fill="#f2c94c"/><text x="607" y="210" text-anchor="middle" font-size="6.5" font-weight="700" fill="#fff">SHARPS</text>`)}
+  <path d="M840 0V92" stroke="#c7ccd0" stroke-width="10"/><path d="M840 90 L790 110" stroke="#c7ccd0" stroke-width="10"/><ellipse cx="782" cy="116" rx="40" ry="16" fill="#e6e9ec" stroke="#b7bcc1" stroke-width="3"/>
+  <path d="M780 272 V296 H878" stroke="#9aa3ab" stroke-width="8" fill="none" stroke-linejoin="round"/>
+  ${obj('o-session',`<rect x="690" y="150" width="180" height="122" rx="6" fill="#2a2e33" filter="url(#ds)"/>${on('o-session')?`<rect x="698" y="158" width="164" height="104" fill="#f6f9fc"/><rect x="698" y="158" width="164" height="13" fill="#2c5aa0"/><text x="703" y="167.5" font-size="7.5" font-weight="600" fill="#fff">Patient chart</text><text x="703" y="183" font-size="8" font-weight="700" fill="#1a2233">${full(2)}  DOB ${pn(2).dob}</text><rect x="703" y="190" width="58" height="46" fill="#1a1d22"/><path d="M712 228 q4 -26 8 -30 q4 4 6 30z M728 228 q3 -24 7 -28 q5 4 6 28z M745 228 q2 -22 6 -26 q5 4 5 26z" fill="#cfd5dc"/><text x="768" y="200" font-size="6.6" fill="#223">Tx: #30 extraction</text><text x="768" y="212" font-size="6.6" fill="#223">Allergy: penicillin</text><text x="768" y="224" font-size="6.6" fill="#223">Balance: $${r.bal}</text><text x="703" y="254" font-size="6.2" font-weight="600" fill="#a33">Last activity 24 min ago</text>`
+    :`<rect x="698" y="158" width="164" height="104" fill="#1e4f7a"/><text x="780" y="206" text-anchor="middle" font-size="16" font-weight="600" fill="#fff">10:05</text><text x="780" y="222" text-anchor="middle" font-size="7" fill="#d6e4f2">Locked. Sign in to continue</text>`}<rect x="698" y="158" width="164" height="104" fill="url(#glass)" opacity=".35"/>`)}
+  ${on('o-shared')?obj('o-shared',`<rect x="752" y="274" width="56" height="13" fill="#ffffff" stroke="#c9c9c9" stroke-width=".8"/><text class="hand" x="780" y="284" text-anchor="middle" font-size="9" font-weight="700" fill="#1f1f1f">op1 / op1</text>`):''}
+  ${shadow(820,590,150,10,.2)}
+  <!-- dental chair, side profile -->
+  <rect x="716" y="576" width="190" height="20" rx="10" fill="#b4bac0"/><rect x="716" y="588" width="190" height="8" rx="4" fill="#9aa1a8"/>
+  <path d="M798 500 H834 L846 578 H786 Z" fill="#cdd2d6"/><path d="M798 500 H808 L800 578 H786 Z" fill="#ffffff" opacity=".35"/>
+  <rect x="770" y="490" width="96" height="16" rx="6" fill="#b4bac0"/>
+  <path d="M874 300 L882 470" stroke="#9aa3ab" stroke-width="9" stroke-linecap="round"/>
+  <path d="M878 342 Q905 346 930 364" stroke="#9aa3ab" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <rect x="918" y="360" width="88" height="11" rx="3" fill="#e1e5e8" stroke="#aeb5bb"/>
+  ${[932,950,968,986].map((x,i)=>`<rect x="${x-2}" y="${344+(i%2)*3}" width="4" height="18" rx="2" fill="${i==3?'#d9dde0':'#5b6168'}"/><path d="M${x} 371 q${i%2?8:-6} 34 ${i%2?-2:4} 70" stroke="#7d868d" stroke-width="2" fill="none"/>`).join('')}
+  <g transform="rotate(51.1 692 410)"><rect x="604" y="420" width="176" height="12" rx="6" fill="#aeb5bb"/><rect x="607" y="392" width="172" height="34" rx="16" fill="#3f8a86"/><rect x="611" y="394" width="164" height="8" rx="4" fill="#5ea7a1" opacity=".55"/><path d="M640 397 V421 M700 397 V421 M750 397 V421" stroke="#357571" stroke-width="1.5"/></g>
+  <path d="M628 330 L646 352" stroke="#aeb5bb" stroke-width="7" stroke-linecap="round"/>
+  <g transform="rotate(51.1 616 317)"><rect x="592" y="304" width="48" height="26" rx="12" fill="#3f8a86"/><rect x="596" y="306" width="40" height="6" rx="3" fill="#5ea7a1" opacity=".55"/></g>
+  <path d="M742 456 Q738 456 738 470 L740 486 Q742 498 756 498 L896 494 Q912 494 912 480 L912 470 Q912 456 898 456 Z" fill="#3f8a86"/><path d="M748 459 L898 459" stroke="#5ea7a1" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+  <rect x="766" y="430" width="92" height="12" rx="6" fill="#357571"/><rect x="808" y="442" width="8" height="16" fill="#aeb5bb"/>
+  <g transform="rotate(24.8 968 492)"><rect x="896" y="488" width="146" height="10" rx="5" fill="#aeb5bb"/><rect x="896" y="472" width="146" height="28" rx="13" fill="#3f8a86"/><rect x="900" y="474" width="138" height="6" rx="3" fill="#5ea7a1" opacity=".55"/></g>
+  <rect x="1026" y="506" width="12" height="40" rx="5" fill="#9aa1a8" transform="rotate(-20 1032 526)"/>
+  ${shadow(76,606,64,7)}
+  <rect x="20" y="420" width="114" height="10" fill="#9aa3ab"/><rect x="20" y="596" width="114" height="8" fill="#9aa3ab"/><path d="M26 430V600M128 430V600" stroke="#9aa3ab" stroke-width="5"/>
+  ${paper(32,404,50,16,-4,lines(36,409,40,2,5),'#fdfdfb')}
+  ${obj('o-win7',`<rect x="38" y="438" width="74" height="156" rx="4" fill="#dcdcd7" stroke="#9c9c96" stroke-width="2"/><rect x="48" y="452" width="54" height="7" fill="#b9b9b3"/><circle cx="96" cy="580" r="4" fill="#5fbf7a"/>
+    ${on('o-win7')?`<rect x="74" y="474" width="28" height="16" rx="1.5" fill="#1e5aa8"/><text x="88" y="481" text-anchor="middle" font-size="4.6" font-weight="700" fill="#fff">Windows 7</text><text x="88" y="487" text-anchor="middle" font-size="3.4" fill="#dbe7ff">Professional</text>`:`<rect x="74" y="474" width="28" height="16" rx="1.5" fill="#0f6cbd"/><text x="88" y="484" text-anchor="middle" font-size="4.6" font-weight="700" fill="#fff">Windows 11</text>`}
+    <rect x="48" y="504" width="54" height="13" fill="#f7f4d9"/><text class="hand" x="75" y="514" text-anchor="middle" font-size="8.5" font-weight="700" fill="#333">Sensor PC</text>`)}
+  <rect x="88" y="530" width="18" height="5" rx="1" fill="#2a2d31"/><rect x="90" y="531.5" width="14" height="1.6" fill="#4a7fd1"/><rect x="88" y="540" width="18" height="5" rx="1" fill="#2a2d31"/><rect x="90" y="541.5" width="14" height="1.6" fill="#4a7fd1"/>
+  ${on('o-usb')?obj('o-usb',`<rect x="96" y="539" width="16" height="7" rx="1" fill="#c9ced3" stroke="#8d949b" stroke-width=".8"/><rect x="99" y="540.6" width="2.4" height="1.8" fill="#6b7279"/><rect x="104" y="540.6" width="2.4" height="1.8" fill="#6b7279"/>
+    <rect x="110" y="536.5" width="34" height="12" rx="3.5" fill="#1f4fa0"/><rect x="110" y="536.5" width="34" height="4" rx="2" fill="#4a7fd1" opacity=".55"/><rect x="113" y="540.5" width="18" height="4.5" rx="1" fill="#e9eef5"/><text x="122" y="544.3" text-anchor="middle" font-size="3.4" font-weight="700" fill="#1f4fa0">32GB</text><circle cx="135" cy="542.5" r="1.3" fill="#ff5a4a"/>
+    <circle cx="146.5" cy="542.5" r="3.4" fill="none" stroke="#1f4fa0" stroke-width="1.8"/>
+    <path d="M148 545 q4 6 2 12" fill="none" stroke="#c9a227" stroke-width="1.2"/>
+    <g transform="rotate(10 156 562)"><rect x="141" y="555" width="30" height="13" rx="1.5" fill="#fdfbf2" stroke="#b9b5a6" stroke-width=".8"/><circle cx="145" cy="561.5" r="1.4" fill="none" stroke="#b9b5a6" stroke-width=".7"/><text class="hand" x="158" y="564.5" text-anchor="middle" font-size="7" font-weight="700" fill="#333">XRAY BKP</text></g>`):''}
+  ${navBadge(320,660,'Hallway','hallway','left')}`;
+},
+
+/* ---------------- IMAGING ---------------- */
+imaging(){
+  const r=R(), on=A;
+  return `${shell({wallTop:'#eef1f3',wallBot:'#dce1e5',floorFar:'#b6bdc2',floorNear:'#cdd3d7',floorLine:'#a6aeb4',ceiling:'#d5dbe0',base:'#b9c2c8',lights:[600],tile:110})}
+  <g data-go="hallway" tabindex="-1">${door(40,170,140,296,'#c9b08a','#a78d66')}</g>
+  ${obj('i-sign',`<rect x="62" y="210" width="96" height="58" fill="#fff" stroke="#c8a12b" stroke-width="3"/><path d="M110 222 l14 24 h-28z" fill="#f2c230" stroke="#333" stroke-width="1.5"/><circle cx="110" cy="240" r="3" fill="#333"/><text x="110" y="262" text-anchor="middle" font-size="7.5" font-weight="700" fill="#333">X-RAY IN USE</text>`)}
+  ${obj('i-apron',`<rect x="232" y="186" width="70" height="8" fill="#8a9298"/><circle cx="267" cy="196" r="5" fill="#666"/><path d="M240 200 h54 l6 150 h-66z" fill="#3e6fa3"/><path d="M254 200 q13 18 26 0" fill="none" stroke="#2b5480" stroke-width="4"/><rect x="246" y="300" width="42" height="10" fill="#2b5480"/>`)}
+  ${obj('i-pano',`${shadow(600,600,140,10,.2)}<rect x="560" y="140" width="80" height="460" fill="#eef0f2" stroke="#c4c9cd" stroke-width="3"/><rect x="560" y="140" width="80" height="460" fill="url(#glass)" opacity=".6"/><rect x="500" y="250" width="200" height="40" rx="8" fill="#f6f7f8" stroke="#c4c9cd" stroke-width="3"/><path d="M510 290 v90 q0 12 12 12 h10 v-102" fill="#e3e6e9" stroke="#c4c9cd" stroke-width="3"/><path d="M690 290 v90 q0 12 -12 12 h-10 v-102" fill="#e3e6e9" stroke="#c4c9cd" stroke-width="3"/><rect x="580" y="380" width="40" height="14" rx="4" fill="#9aa3ab"/><rect x="570" y="420" width="60" height="10" rx="3" fill="#7e8890"/><rect x="584" y="160" width="32" height="20" rx="3" fill="#2a2e33"/><rect x="588" y="164" width="24" height="12" fill="#5fb3d6"/><rect x="530" y="596" width="140" height="12" rx="4" fill="#b4bcc2"/>`)}
+  <!-- acquisition desk -->
+  ${shadow(940,604,140,9,.18)}
+  <rect x="810" y="400" width="260" height="14" fill="#c9c3b6"/><rect x="820" y="414" width="10" height="186" fill="#a9a395"/><rect x="1050" y="414" width="10" height="186" fill="#a9a395"/>
+  ${obj('i-updates',`<rect x="860" y="282" width="150" height="104" rx="5" fill="#25292e" filter="url(#ds)"/><rect x="867" y="289" width="136" height="88" fill="#0e1012"/><path d="M880 360 q55 -60 110 0" fill="none" stroke="#d9dee3" stroke-width="6" opacity=".85"/><path d="M886 352 q49 -46 98 0" fill="none" stroke="#9aa3ab" stroke-width="10" opacity=".35"/><text x="871" y="300" font-size="6" fill="#9aa3ab">Pano capture</text><rect x="926" y="386" width="18" height="14" fill="#25292e"/>
+    <rect x="980" y="430" width="60" height="140" rx="4" fill="#d8d8d3" stroke="#9c9c96" stroke-width="2"/><rect x="988" y="442" width="44" height="6" fill="#b9b9b3"/><circle cx="1028" cy="560" r="3.5" fill="#5fbf7a"/>
+    ${on('i-updates')?`<g transform="rotate(-3 1010 486)"><rect x="984" y="466" width="52" height="40" fill="#fdfbf2" stroke="#ccc" stroke-width=".8"/><rect x="994" y="463" width="30" height="6" fill="#d9d2b6" opacity=".9"/><text class="hand" x="988" y="478" font-size="6.2" font-weight="700" fill="#b8392b">Windows</text><text class="hand" x="988" y="486" font-size="6.2" font-weight="700" fill="#b8392b">updates OFF</text><text class="hand" x="988" y="494" font-size="5.6" fill="#333">per vendor.</text><text class="hand" x="988" y="502" font-size="5.6" fill="#333">Do not restart!</text></g>`:`<rect x="988" y="470" width="44" height="12" fill="#fff"/><text x="1010" y="478" text-anchor="middle" font-size="4.8" fill="#333">Asset IMG-02</text>`}`)}
+  ${obj('i-drives',`${shadow(150,604,74,7)}<path d="M84 520 h132 v80 h-132z" fill="#c49a62"/><path d="M84 520 l-14 -18 h132 l14 18z" fill="#d6ad74"/><path d="M216 520 l14 -18 v-0" fill="none"/><text x="150" y="560" text-anchor="middle" font-size="9" font-weight="700" fill="#5a4022">${on('i-drives')?'OLD PCs, recycle':'Gloves, case of 10'}</text>
+    ${on('i-drives')?`<rect x="100" y="480" width="34" height="40" fill="#3a3f45"/><rect x="104" y="486" width="26" height="4" fill="#555"/><rect x="146" y="498" width="26" height="20" rx="2" fill="#8f979e" transform="rotate(-14 159 508)"/><circle cx="152" cy="507" r="5" fill="#b8bec3" transform="rotate(-14 159 508)"/><rect x="176" y="502" width="26" height="18" rx="2" fill="#8f979e" transform="rotate(10 189 511)"/>`:`<path d="M100 512 q20 -16 40 0 q20 -14 40 0" fill="#f1efe8" stroke="#d4d0c4"/>`}`)}
+  ${navBadge(110,640,'Hallway','hallway','left')}`;
+},
+
+/* ---------------- BACK OFFICE ---------------- */
+backoffice(){
+  const r=R(), on=A;
+  return `${shell({wallTop:'#f3ece0',wallBot:'#e2d8c6',floorFar:'#6f7a84',floorNear:'#8c97a0',floorLine:'#7b858e',ceiling:'#ddd3c2',base:'#cbbfa9',lights:[300,860],tile:70,rows:false})}
+  ${obj('b-whiteboard',`<rect x="66" y="96" width="348" height="232" rx="4" fill="#c9ccd0" filter="url(#ds)"/><rect x="74" y="104" width="332" height="216" fill="#fbfbfa"/><rect x="74" y="104" width="332" height="216" fill="url(#glass)" opacity=".7"/><rect x="74" y="320" width="332" height="10" fill="#b5b8bc"/>
+    <text class="hand" x="88" y="136" font-size="17" font-weight="700" fill="#2b7a4b">Staff mtg Thurs 12:30</text><text class="hand" x="88" y="164" font-size="15" fill="#1f4fa0">Order: gloves M, 2x2 gauze</text><text class="hand" x="88" y="188" font-size="15" fill="#1f4fa0">Call lab re: ${pn(1).l} crown</text>
+    ${on('b-whiteboard')?`<path d="M240 204 h156" stroke="#bbb" stroke-width="1"/><text class="hand" x="246" y="224" font-size="11.5" font-weight="700" fill="#1f4fa0">Dentrix  drkhan / ${r.dx}</text><text class="hand" x="246" y="244" font-size="11.5" font-weight="700" fill="#1f4fa0">ADP  officemgr / ${r.pay}</text><text class="hand" x="246" y="264" font-size="11.5" font-weight="700" fill="#b8392b">Bank login: top drawer</text><text class="hand" x="246" y="284" font-size="11.5" font-weight="700" fill="#1f4fa0">IT = ${r.it} 817-555-0142</text>`:`<text class="hand" x="88" y="230" font-size="15" fill="#1f4fa0">IT = ${r.it} 817-555-0142</text>`}`)}
+  ${obj('b-cert',`<rect x="448" y="116" width="128" height="96" fill="#c9a24c" filter="url(#ds)"/><rect x="456" y="124" width="112" height="80" fill="#fffdf5"/><text x="512" y="146" text-anchor="middle" font-size="9" fill="#6b5a2a">Certificate</text><text x="512" y="164" text-anchor="middle" font-size="10" font-weight="700" fill="#222">HIPAA Training</text><text x="512" y="180" text-anchor="middle" font-size="8" fill="#444">Completed ${r.year}</text><circle cx="512" cy="194" r="5" fill="#c9a24c"/>`)}
+  ${obj('b-calendar',`<rect x="610" y="116" width="96" height="120" fill="#ffffff" stroke="#c9c2b3" filter="url(#ds)"/><rect x="610" y="116" width="96" height="22" fill="#b8392b"/><text x="658" y="131" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${r.month}</text>${Array.from({length:30},(_,i)=>`<rect x="${616+(i%7)*13}" y="${146+Math.floor(i/7)*17}" width="10" height="12" fill="${i==r.dom-1?'#f3d9a4':'#f1efe9'}"/>`).join('')}`)}
+  <rect x="760" y="250" width="320" height="12" fill="#8a6a4a"/><path d="M790 262v18M1050 262v18" stroke="#6a5038" stroke-width="5"/>
+  ${[0,1,2,3,4].map(i=>`<rect x="${960+i*20}" y="${196+(i%2)*6}" width="16" height="${54-(i%2)*6}" fill="${['#6b7fa8','#a8664c','#4f7a62','#c9a24c','#556070'][i]}"/>`).join('')}
+  ${obj('b-router', on('b-router')?`<path d="M818 208 l-14 -46 M902 208 l14 -46 M860 206 v-50" stroke="#24272b" stroke-width="5" stroke-linecap="round"/><rect x="800" y="204" width="124" height="46" rx="8" fill="#24272b"/>${[0,1,2,3,4].map(i=>`<circle cx="${814+i*10}" cy="230" r="2.4" fill="#4ade80"/>`).join('')}<text x="814" y="244" font-size="6.2" fill="#8b929b">AX1800 Home Router</text><rect x="884" y="214" width="34" height="22" fill="#ffffff"/><text x="887" y="223" font-size="5" font-weight="700" fill="#222">admin</text><text x="887" y="232" font-size="5" font-weight="700" fill="#222">password</text>`
+    :`<rect x="796" y="214" width="140" height="36" rx="4" fill="#2f3a46"/>${[0,1,2,3,4,5].map(i=>`<rect x="${806+i*14}" y="236" width="10" height="7" fill="#11161c"/><circle cx="${811+i*14}" cy="228" r="2" fill="#4ade80"/>`).join('')}<text x="900" y="232" font-size="6" fill="#c9d1da">FW-60</text><rect x="900" y="238" width="30" height="8" fill="#fff"/><text x="902" y="244" font-size="4.6" fill="#333">IT-0017</text>`)}
+  <!-- desk -->
+  ${shadow(590,606,330,10,.2)}
+  <rect x="280" y="420" width="620" height="16" fill="#9a7451"/><rect x="290" y="436" width="130" height="164" fill="#8b6748"/><path d="M296 490H414M296 545H414" stroke="#76563a" stroke-width="2"/><rect x="884" y="436" width="12" height="164" fill="#8b6748"/>
+  ${paper(436,398,52,22,4,lines(440,403,42,4,4),'#fdfdfb')}${paper(800,402,40,16,-6,lines(804,406,30,3,4),'#fdf6e3')}
+  ${obj('b-unattended',`<rect x="470" y="282" width="200" height="128" rx="6" fill="#23272c" filter="url(#ds)"/>
+    ${on('b-unattended')?`<rect x="478" y="290" width="184" height="106" fill="#f3f6fa"/><rect x="478" y="290" width="92" height="12" fill="#0f6cbd"/><rect x="571" y="290" width="91" height="12" fill="#dde3ea"/><text x="482" y="299" font-size="6.4" font-weight="600" fill="#fff">Inbox (14)</text><text x="575" y="299" font-size="6.4" fill="#333">ADP Payroll</text>${[0,1,2,3,4].map(i=>`<rect x="484" y="${310+i*16}" width="${120-(i%2)*30}" height="4.5" fill="#c9d3df"/><rect x="484" y="${317+i*16}" width="${150-(i%3)*20}" height="2.8" fill="#e1e7ef"/>`).join('')}`
+    :`<rect x="478" y="290" width="184" height="106" fill="#2b4f6e"/><text x="570" y="342" text-anchor="middle" font-size="15" font-weight="600" fill="#fff">10:05</text><text x="570" y="356" text-anchor="middle" font-size="6.5" fill="#d6e4f2">Locked</text>`}
+    <rect x="478" y="290" width="184" height="106" fill="url(#glass)" opacity=".35"/><rect x="560" y="410" width="20" height="12" fill="#23272c"/>
+    <path d="M560 520 q10 -60 60 -60 q50 0 60 60z" fill="#30363d"/><rect x="580" y="520" width="80" height="20" rx="6" fill="#30363d"/><rect x="616" y="540" width="8" height="44" fill="#55595e"/><path d="M584 594 h72" stroke="#55595e" stroke-width="6" stroke-linecap="round"/>
+    ${on('b-unattended')?`<g transform="rotate(-5 618 490)"><rect x="596" y="478" width="44" height="22" fill="#fff"/><text class="hand" x="618" y="493" text-anchor="middle" font-size="9" font-weight="700" fill="#333">Back in 15</text></g>`:''}`)}
+  ${on('b-teamviewer')?obj('b-teamviewer',`<g transform="rotate(6 652 392)"><rect x="632" y="376" width="40" height="32" fill="#f6d47a"/><text class="hand" x="652" y="386" text-anchor="middle" font-size="5.4" font-weight="700" fill="#2a2a2a">TeamViewer</text><text class="hand" x="652" y="394" text-anchor="middle" font-size="5" font-weight="700" fill="#2a2a2a">${r.tvid}</text><text class="hand" x="652" y="402" text-anchor="middle" font-size="5" font-weight="700" fill="#2a2a2a">pw ${r.tv}</text></g>`):''}
+  <rect x="500" y="410" width="140" height="10" rx="2" fill="#3a3f45"/>
+  ${obj('b-phish',on('b-phish')?paper(330,398,100,22,-4,`<text x="334" y="406" font-size="4.6" font-weight="700" fill="#b8392b">URGENT: M365 password expires today</text><text x="334" y="413" font-size="4.2" fill="#1f4fa0">ms365-verify-login.co/keep</text><ellipse cx="360" cy="412" rx="30" ry="5" fill="none" stroke="#c8312b" stroke-width="1.1"/>`):paper(330,398,100,22,-4,`<text x="334" y="406" font-size="4.6" font-weight="700" fill="#333">INVOICE  Patterson Dental</text>${lines(334,410,80,2,4)}`))}
+  ${obj('b-backup',`<rect x="700" y="490" width="104" height="110" rx="4" fill="#2c3138"/>${[0,1,2,3].map(i=>`<rect x="712" y="${520+i*14}" width="80" height="6" fill="#3d444d"/>`).join('')}<circle cx="790" cy="506" r="3" fill="#4ade80"/><text x="716" y="510" font-size="8" font-weight="700" fill="#c9d1da">SERVER</text>
+    ${on('b-backup')?`<rect x="712" y="472" width="80" height="18" rx="3" fill="#47505a"/><text x="752" y="485" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff">BACKUP</text><rect x="620" y="604" width="130" height="10" rx="3" fill="#e9e9e9" stroke="#999"/><path d="M740 590 q10 10 0 14 M800 470 q40 20 -60 134" stroke="#222" stroke-width="2.4" fill="none"/>`
+    :`<rect x="814" y="540" width="44" height="60" rx="3" fill="#1f2328"/><circle cx="836" cy="556" r="3" fill="#4ade80"/><text x="836" y="580" text-anchor="middle" font-size="6" fill="#9aa3ab">UPS</text><rect x="712" y="586" width="80" height="10" fill="#fff"/><text x="752" y="593" text-anchor="middle" font-size="5" fill="#333">Cloud backup, nightly</text>`}`)}
+  ${obj('b-cabinet',`${shadow(1010,604,80,7)}<rect x="940" y="300" width="140" height="300" fill="#9aa3a8"/><path d="M940 400H1080M940 500H1080" stroke="#7f888d" stroke-width="3"/>
+    ${on('b-cabinet')?`<rect x="932" y="304" width="156" height="92" fill="#a8b1b6" stroke="#7f888d" stroke-width="2"/><rect x="934" y="396" width="152" height="8" fill="#5f676b"/>${[0,1,2,3,4,5].map(i=>`<rect x="${944+i*22}" y="292" width="18" height="16" fill="#e9c77a"/>`).join('')}<circle cx="1066" cy="318" r="6" fill="#d9d9d9" stroke="#666"/><rect x="1064" y="318" width="4" height="12" fill="#c9a227"/><circle cx="1066" cy="338" r="8" fill="none" stroke="#c9a227" stroke-width="2.4"/>`
+    :`<rect x="940" y="300" width="140" height="100" fill="#9aa3a8"/><circle cx="1066" cy="318" r="6" fill="#d9d9d9" stroke="#666"/>`}
+    ${[0,1,2].map(i=>`<rect x="985" y="${336+i*100}" width="50" height="10" rx="3" fill="#5f676b"/>`).join('')}<rect x="976" y="360" width="68" height="15" fill="#fff"/><text x="1010" y="371" text-anchor="middle" font-size="7.5" fill="#333">Patients A-L</text><rect x="976" y="460" width="68" height="15" fill="#fff"/><text x="1010" y="471" text-anchor="middle" font-size="7.5" fill="#333">Patients M-Z</text><rect x="976" y="560" width="68" height="15" fill="#fff"/><text x="1010" y="571" text-anchor="middle" font-size="7.5" fill="#333">Personnel</text>`)}
+  ${obj('b-safe',`<rect x="1100" y="508" width="84" height="92" rx="4" fill="#3b4046"/><circle cx="1142" cy="550" r="14" fill="#5a6068" stroke="#222" stroke-width="2"/><path d="M1142 538v6" stroke="#ddd" stroke-width="2"/>`)}
+  ${navBadge(100,640,'Hallway','hallway','left')}`;
+}
+};
+
+/* ================= ENGINE ================= */
+const KEY='aegis-walkthrough-v2';
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const pad=n=>String(n).padStart(2,'0');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SEVR={High:3,Medium:2,Low:1};
+const CATN={give:"Give it",save:"Save it"};
+
+function pickActive(){
+  const n=12+rnd(4);
+  const pat=shuffle(FINDINGS.filter(f=>f.pattern).map(f=>f.id)).slice(0,2+rnd(3));
+  let act=[...pat];
+  const rest=shuffle(FINDINGS.map(f=>f.id).filter(id=>!act.includes(id)));
+  ROOM_ORDER.forEach(room=>{if(!act.some(id=>FIND[id].room===room)){const c=rest.find(id=>FIND[id].room===room&&!act.includes(id));if(c)act.push(c)}});
+  for(const id of rest){if(act.length>=n)break;if(!act.includes(id))act.push(id)}
+  return act;
+}
+function newRun(){
+  const d=new Date(), year=d.getFullYear();
+  const fn=shuffle(FIRST), ln=shuffle(LAST);
+  const P=[null];for(let i=0;i<6;i++)P.push({f:fn[i],l:ln[i],dob:`${pad(1+rnd(12))}/${pad(1+rnd(28))}/${pad(50+rnd(50))}`});
+  const w=pick(PW_WORDS), w2=pick(PW_WORDS.filter(x=>x!==w)), it=pick(IT_NAMES);
+  const g=()=>String(rnd(10000)).padStart(4,'0');
+  return {active:pickActive(),P,year,
+    day:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).replace(',',''),
+    md:`${d.getMonth()+1}/${d.getDate()}`,month:d.toLocaleDateString('en-US',{month:'long'}),dom:d.getDate(),
+    desk:`${w}${year}!`,wifi:`${w}${year}`,ssid:'Brightline-Office',gcode:g(),
+    pay:`${pick(SEASONS)}${year}`,dx:`${w2}${year}#`,it,tv:`${it.toLowerCase()}${year}`,
+    tvid:`${100+rnd(900)} ${100+rnd(900)} ${100+rnd(900)}`,
+    card:`4532 ${g()} ${g()} ${g()}`,exp:`${pad(1+rnd(12))}/${pad((year%100)+1+rnd(4))}`,cvv:String(100+rnd(900)),
+    mem:`BCX${1000000+rnd(9000000)}`,bal:(120+rnd(560)+rnd(100)/100).toFixed(2)};
+}
+function freshState(){return{v:2,run:newRun(),timed:true,realistic:true,started:false,remaining:1800,ended:false,j:{},hinted:[],revealed:[],hints:0,auth:null,traps:[],lead:[],leadDone:false,notes:"",sound:true,trapLog:[]}}
+let S=freshState();
+const R=()=>S.run;
+const A=id=>S.run.active.includes(id);
+function fill(s){if(!s)return s;const r=R();return s.replace(/\{P(\d)\}/g,(m,i)=>`${r.P[i].f} ${r.P[i].l}`).replace(/\{DESKPW\}/g,r.desk).replace(/\{WIFIPW\}/g,r.wifi).replace(/\{SSID\}/g,r.ssid).replace(/\{PAYPW\}/g,r.pay).replace(/\{TVPW\}/g,r.tv).replace(/\{IT\}/g,r.it)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===2&&s.run&&Array.isArray(s.run.active)&&s.run.active.every(id=>FIND[id])){S=Object.assign(freshState(),s);return true}}catch(e){}return false}
+
+/* status of an active finding */
+function statusOf(id){const j=S.j[id];if(!j)return 'missed';return j.raise?j.status:'dismissed'}
+const STATUS_TXT={found:"Found",hint:"With a hint",revealed:"Revealed",after:"After time",changed:"Second look",dismissed:"Passed on",missed:"Missed"};
+const foundF=()=>activeF().filter(f=>statusOf(f.id)==='found');
+const CONDUCT={
+  'h-closet':{off:{btn:"Try the handle to see if it's really locked",title:"Don't test their locks",why:"Trying doors and locks is physical security testing. Without signed Rules of Engagement, a walkthrough is look only."}},
+  'o-session':{btn:"Take a photo of the screen for your notes",title:"Don't photograph their screens",why:"A photo can put patient data on your phone before any BAA or authorization covers it, and even a locked screen is their equipment. Describe it in your notes instead."},
+  'b-cabinet':{btn:"Open the drawer to see what's inside",title:"Don't open their files",why:"Opening the drawer means viewing patient and personnel records you have no authorization to see. Note what you can see from where you stand and leave it."},
+  'b-unattended':{btn:"Wiggle the mouse and check what this account can access",title:"Don't use their computers",why:"Using someone's session, even just to look, is unauthorized access. Note what you can see from where you stand and move on."}
+};
+function trapFor(id){const c=CONDUCT[id];if(!c)return null;if(c.off)return A(id)?FIND[id].conduct:c.off;return c}
+const activeF=()=>FINDINGS.filter(f=>A(f.id));
+const raisedF=()=>activeF().filter(f=>S.j[f.id]&&S.j[f.id].raise);
+
+/* ---------- camera ---------- */
+const svg=document.getElementById('stage'), sceneG=document.getElementById('scene'), markersG=document.getElementById('markers'), wrap=document.getElementById('wrap');
+let cam={x:0,y:0,w:W,h:H};
+function aspect(){const r=wrap.getBoundingClientRect();return (r.height||1)/(r.width||1)}
+function fitW(){return Math.max(W,H/aspect())}
+function clampCam(c){const Asp=aspect();const fw=fitW();let w=Math.min(fw,Math.max(fw/7,c.w));let h=w*Asp;let x=w>=W?(W-w)/2:Math.min(W-w,Math.max(0,c.x));let y=h>=H?(window.innerWidth<900?0:(H-h)/2):Math.min(H-h,Math.max(0,c.y));return{x,y,w,h}}
+function applyCam(){svg.setAttribute('viewBox',`${cam.x} ${cam.y} ${cam.w} ${cam.h}`)}
+function setCam(c){cam=clampCam(c);applyCam()}
+function camFor(){const w=fitW();return clampCam({x:(W-w)/2,y:(H-w*aspect())/2,w})}
+function fitRect(r,pad=24){const Asp=aspect();let [x,y,w,h]=r;x-=pad;y-=pad;w+=pad*2;h+=pad*2;const cw=Math.max(w,h/Asp);const ch=cw*Asp;return clampCam({x:x+w/2-cw/2,y:y+h/2-ch/2,w:cw})}
+function toSvg(cx,cy){const r=svg.getBoundingClientRect();const k=Math.max(cam.w/r.width,cam.h/r.height);const ox=r.left+(r.width-cam.w/k)/2,oy=r.top+(r.height-cam.h/k)/2;return{x:cam.x+(cx-ox)*k,y:cam.y+(cy-oy)*k,k}}
+function zoomAt(cx,cy,f){const p=toSvg(cx,cy);const fw=fitW();const nw=Math.min(fw,Math.max(fw/7,cam.w*f));const ff=nw/cam.w;setCam({x:p.x-(p.x-cam.x)*ff,y:p.y-(p.y-cam.y)*ff,w:nw})}
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function animateCam(to,ms=440){return new Promise(res=>{if(reduceMotion()){cam=to;applyCam();return res()}const from={...cam},t0=performance.now();function step(t){const p=Math.min(1,(t-t0)/ms);const e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;cam={x:from.x+(to.x-from.x)*e,y:from.y+(to.y-from.y)*e,w:from.w+(to.w-from.w)*e,h:from.h+(to.h-from.h)*e};applyCam();p<1?requestAnimationFrame(step):res()}requestAnimationFrame(step)})}
+function fade(v){return new Promise(res=>{svg.style.opacity=v;setTimeout(res,reduceMotion()?0:170)})}
+
+/* ---------- rendering ---------- */
+let current='plan', busy=false;
+function renderScene(key){current=key;const [wc,fc,sy]=BG[key];
+  const ext=key==='plan'?`<rect x="-3000" y="-3000" width="7200" height="6720" fill="${wc}"/>`:`<rect x="-3000" y="-3000" width="7200" height="${3000+sy}" fill="${wc}"/><rect x="-3000" y="${sy}" width="7200" height="3000" fill="${fc}"/>`;
+  sceneG.innerHTML=ext+SCENES[key]();Sound.setRoom(key);
+  document.getElementById('backCtl').classList.toggle('hidden',key==='plan');
+  renderMarkers();updatePanel();}
+async function goRoom(key){
+  if(busy||key===current)return; busy=true;
+  if(current==='plan'&&PLAN_RECT[key]){await animateCam(fitRect(PLAN_RECT[key]),460);await fade(0);renderScene(key);cam=camFor();applyCam();await fade(1);}
+  else{await fade(0);renderScene(key);cam=camFor();applyCam();await fade(1);}
+  showIntroCard(); busy=false;
+}
+async function goPlan(){
+  if(busy||current==='plan')return; busy=true; const from=current;
+  await fade(0);renderScene('plan');cam=fitRect(PLAN_RECT[from]);applyCam();await fade(1);await animateCam(camFor(),460);
+  showIntroCard(); busy=false;
+}
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e}
+function bboxOf(id){const g=sceneG.querySelector(`[data-id="${id}"]`);if(!g)return null;try{return g.getBBox()}catch(e){return null}}
+function renderMarkers(){
+  markersG.innerHTML='';
+  if(current==='plan'){updatePlanCounts();return}
+  sceneG.querySelectorAll('[data-id]').forEach(g=>{
+    const id=g.dataset.id, j=S.j[id], b=bboxOf(id); if(!b)return;
+    const isF=FIND[id]&&A(id);
+    if(j){
+      const cx=b.x+b.width,cy=b.y,mk=el('g',{});
+      if(j.raise){mk.appendChild(el('circle',{cx,cy,r:12,fill:'#D4A04C',stroke:'#011138','stroke-width':3}));mk.appendChild(el('path',{d:`M${cx-5.5} ${cy} l4 4 l7.5 -7.5`,fill:'none',stroke:'#011138','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'}))}
+      else{mk.appendChild(el('circle',{cx,cy,r:10,fill:'#ffffff',stroke:'#8a93a3','stroke-width':2.5}));mk.appendChild(el('path',{d:`M${cx-4.5} ${cy}h9`,stroke:'#8a93a3','stroke-width':2.5,'stroke-linecap':'round'}))}
+      markersG.appendChild(mk);
+    }else if(isF&&S.revealed.includes(id)){
+      markersG.appendChild(el('rect',{x:b.x-8,y:b.y-8,width:b.width+16,height:b.height+16,rx:10,fill:'none',stroke:'#e0503c','stroke-width':4,'stroke-dasharray':'10 7'}));
+    }
+  });
+}
+function roomStats(room){const act=activeF().filter(f=>f.room===room);const n=act.filter(f=>S.j[f.id]&&S.j[f.id].raise).length;const raised=Object.keys(S.j).filter(id=>S.j[id].raise&&((FIND[id]&&FIND[id].room===room)||id.startsWith(room[0]+'-'))).length;return{n,t:act.length,raised}}
+function updatePlanCounts(){ROOM_ORDER.forEach(r=>{const t=document.getElementById('pc-'+r);if(!t)return;const s=roomStats(r);t.textContent=S.realistic?`${s.raised} raised`:`${s.n} of ${s.t} raised`;})}
+function updateScore(){
+  const sc=document.getElementById('score');
+  if(S.realistic){const n=Object.values(S.j).filter(j=>j.raise).length;sc.innerHTML=`${n} <small>raised</small>`}
+  else sc.innerHTML=`${foundF().length} <small>of ${activeF().length} found</small>`;
+}
+function updatePanel(){
+  document.getElementById('roomTitle').textContent=ROOM_NAMES[current];
+  const rc=document.getElementById('roomCount'), bar=document.getElementById('roomBar');
+  document.getElementById('progWrap').classList.toggle('hidden',S.realistic);
+  if(current==='plan'){const n=raisedF().length,t=activeF().length;rc.textContent=S.realistic?'':`${n} of ${t} raised overall`;bar.style.width=(t?n/t*100:0)+'%'}
+  else{const s=roomStats(current);rc.textContent=S.realistic?`${s.raised} raised here`:`${s.n} of ${s.t} raised here`;bar.style.width=(s.t?s.n/s.t*100:0)+'%'}
+  ['hintBtn','revealBtn'].forEach(b=>document.getElementById(b).disabled=current==='plan');
+  updateScore();
+}
+
+/* ---------- panel cards ---------- */
+const card=document.getElementById('card');
+function scrollCard(){if(window.innerWidth<900)card.scrollIntoView({behavior:reduceMotion()?'auto':'smooth',block:'start'})}
+function showIntroCard(){
+  if(current==='plan'){
+    card.innerHTML=`<div class="card"><p>Denise, the office manager, meets you at the front desk and tells you to look wherever you need. She'll be up front if you need her.</p><p>Pick a room on the plan to walk into, then use the doors and navy buttons to move around like you would on site.</p><p class="tip">${S.realistic?"Realistic mode is on, so you won't know how many findings there are.":`This run has ${activeF().length} findings across five rooms.`} Some things that look suspicious are fine.</p>${legend()}</div>`;
+  }else{
+    card.innerHTML=`<div class="card"><p>Tap anything you'd bring up with the owner. Pinch, scroll, or use the zoom buttons to read screens, notes, and labels up close.</p><p class="tip">Drag to look around once you're zoomed in.</p>${legend()}</div>`;
+  }
+}
+function legend(){return `<div class="legend"><span><i class="dot" style="background:#D4A04C"></i>Raised</span><span><i class="dot" style="border:2px solid #8a93a3"></i>Passed on</span><span><i class="dot" style="border:2px dashed #e0503c"></i>Revealed</span></div>`}
+
+function labelOf(id){return (FIND[id]||DECOYS[id]).label}
+function inspect(id){
+  if(!S.started){openIntro();return}
+  if(id==='r-denise')showDenise();else if(S.j[id])showResult(id);else showJudge(id);
+  scrollCard();
+}
+function showDenise(){
+  const r=R();
+  const signed=S.auth==='signed'||S.auth==='late';
+  card.innerHTML=`<div class="card"><h3>Denise, office manager</h3><p class="owner">"Need anything?"</p><div id="dsay"></div>
+    <div class="btnrow" style="flex-direction:column;align-items:stretch">
+      <button data-a="staff">Ask how many people work here</button>
+      <button data-a="it">Ask who handles their IT</button>
+      <button data-a="auth">${signed?'Check the authorization is on file':'Get the walkthrough authorization signed'}</button>
+    </div></div>`;
+  const out=document.getElementById('dsay');
+  card.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.a;
+    if(a==='staff')out.innerHTML=`<p class="owner">"Eleven of us, counting both doctors."</p>`;
+    if(a==='it')out.innerHTML=`<p class="owner">"${esc(r.it)}. He's a one-man shop and comes in when something breaks."</p>`;
+    if(a==='auth'){if(!S.auth){S.auth=Object.keys(S.j).length?'late':'signed';save()}out.innerHTML=`<p class="owner">"${signed?"It's right here with your card.":"Sure."}"</p><p>${signed?'':'Denise signs the walkthrough authorization and hands it back.'}</p>`}
+  });
+}
+function showJudge(id,again){
+  const sel={sev:null,cat:null};
+  card.innerHTML=`<div class="card"><h3>${esc(labelOf(id))}</h3><p class="q">Raise this with the owner?</p>
+    <div class="seg" data-k="sev"><span>How severe?</span>${['High','Medium','Low'].map(v=>`<button data-v="${v}" aria-pressed="false">${v}</button>`).join('')}</div>
+    <div class="seg" data-k="cat"><span>Give the fix away, or save it for the assessment?</span><button data-v="give" aria-pressed="false">Give it</button><button data-v="save" aria-pressed="false">Save it</button></div>
+    <p class="tip">Give it: the fix is obvious, can be done today, and needs no knowledge of their systems. Save it: the fix depends on how their systems, vendors, or payments work.</p>
+    <div class="btnrow"><button class="primary" id="raiseBtn" disabled>Raise it</button><button id="fineBtn">It's fine, move on</button></div>${(()=>{const tr=trapFor(id);if(!tr)return '';return S.traps.includes(id)?`<div class="conduct"><b>${esc(tr.title)}</b><p style="margin:4px 0 0">${esc(tr.why)}</p></div>`:`<button class="trap" id="trapBtn">${esc(tr.btn)}</button>`})()}</div>`;
+  card.querySelectorAll('.seg').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{sel[sg.dataset.k]=b.dataset.v;sg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));document.getElementById('raiseBtn').disabled=!(sel.sev&&sel.cat)}));
+  document.getElementById('raiseBtn').onclick=()=>commit(id,true,sel.sev,sel.cat,again);
+  document.getElementById('fineBtn').onclick=()=>commit(id,false,null,null,again);
+  const tb=document.getElementById('trapBtn');if(tb)tb.onclick=()=>{const tr=trapFor(id);S.traps.push(id);S.trapLog.push({id,title:tr.title,why:tr.why});save();showJudge(id,again)};
+}
+function commit(id,raise,sev,cat,again){
+  const isF=FIND[id]&&A(id);
+  const rec={raise,sev:sev||null,cat:cat||null,at:Date.now()};
+  if(isF)rec.status=raise?(S.revealed.includes(id)?'revealed':S.ended?'after':again?'changed':S.hinted.includes(id)?'hint':'found'):'dismissed';
+  else rec.status=raise?'fp':'ok';
+  if(again)rec.changed=true;
+  S.j[id]=rec;save();
+  if(raise){const b=bboxOf(id);if(b){const p=el('rect',{x:b.x-6,y:b.y-6,width:b.width+12,height:b.height+12,rx:10,fill:'none',stroke:'#D4A04C','stroke-width':5,class:'pop'});markersG.appendChild(p);setTimeout(()=>p.remove(),800)}}
+  setTimeout(renderMarkers,raise?650:0);updatePanel();showResult(id);
+  if(isF&&raise&&!S.realistic&&foundF().length===activeF().length){stopTimer();setTimeout(()=>openDebrief(`All ${activeF().length} findings found`),900)}
+}
+function showResult(id){
+  const j=S.j[id];
+  if(!(FIND[id]&&A(id))){
+    const t=DECOYS[id]?DECOYS[id].title:FIND[id].label, note=DECOYS[id]?DECOYS[id].note:fill(FIND[id].ok);
+    card.innerHTML=`<div class="card"><div class="banner ${j.raise?'bad':'good'}">${j.raise?'False positive':'Good call'}<small>${j.raise?'Raising this would cost you credibility with the owner.':'Not everything in the room is a finding.'}</small></div><h3>${esc(t)}</h3><p>${esc(note)}</p>${j.raise?'':'<div class="btnrow"><button id="reBtn">Reconsider</button></div>'}</div>`;
+    const rb=document.getElementById('reBtn');if(rb)rb.onclick=()=>showJudge(id,true);
+    return;
+  }
+  const f=FIND[id];
+  const B={found:['good','Good catch'],hint:['mid','Found with a hint'],revealed:['mid','Revealed'],after:['mid','Found after time'],changed:['mid','Raised on second look'],dismissed:['bad',"You passed on this one. It's a finding."]}[j.status];
+  let calls='';
+  if(j.raise){const sm=j.sev===f.sev,cm=j.cat===f.cat;calls=`<small>Your call: ${j.sev}, ${CATN[j.cat]}. ${sm&&cm?'Matches mine.':`Mine: ${f.sev}, ${CATN[f.cat]}.`}</small>`}
+  const h=HANDLERS[f.push.h];
+  const lg=(S.trapLog||[]).find(x=>x.id===id);
+  const conduct=lg?`<div class="conduct"><b>${esc(lg.title)}</b><p style="margin:4px 0 0">${esc(lg.why)}</p></div>`:'';
+  card.innerHTML=`<div class="card"><div class="banner ${B[0]}">${B[1]}${calls}</div>
+    <span class="chip sev-${f.sev}">${f.sev}</span><span class="chip c-${f.cat}">${CATN[f.cat]}</span>
+    <h3>${esc(f.title)}</h3>
+    <div class="fld"><h4>What you're seeing</h4><p>${esc(fill(f.see))}</p></div>
+    <div class="fld"><h4>Why it matters</h4><p>${esc(f.why)}</p></div>
+    ${f.contain?`<div class="fld"><h4>Contain it now</h4><p>${esc(f.contain)}</p></div>`:''}
+    <details class="say"><summary>Talk track (${CATN[f.cat]}): say it out loud first, then compare</summary><p>${esc(fill(f.say))}</p></details>
+    <details class="say"><summary>What the assessment would recommend</summary><p>${esc(f.fix)}</p>${f.service?`<p class="muted" style="font-size:14px">Ties to: ${esc(f.service)}</p>`:''}</details>
+    <div class="fld"><h4>The owner pushes back</h4><p class="owner">"${esc(fill(f.push.owner))}"</p></div>
+    <details class="say"><summary>Your response: say it first, then compare</summary><p>${esc(h.a)}</p><p class="muted" style="font-size:14px">From your objection handlers: "${esc(h.q)}"</p></details>
+    <div class="fld"><h4>Question to ask</h4><p>${esc(f.ask)}</p></div>
+    ${conduct}
+    <div class="fld"><h4>Reference</h4><p class="muted" style="font-size:14.5px">${esc(f.ref)}</p></div></div>`;
+  if(j.status==='dismissed'){card.querySelector('.banner').insertAdjacentHTML('afterend','<div class="btnrow" style="margin-top:-6px"><button id="reBtn">Reconsider</button></div>');document.getElementById('reBtn').onclick=()=>showJudge(id,true)}
+}
+
+/* ---------- interaction ---------- */
+function ripple(cx,cy){const p=toSvg(cx,cy);const c=el('circle',{cx:p.x,cy:p.y,r:6,fill:'none',stroke:'#D4A04C','stroke-width':3*p.k,class:'ripple'});markersG.appendChild(c);setTimeout(()=>c.remove(),550)}
+function handleTap(cx,cy){
+  const t=document.elementFromPoint(cx,cy);if(!t||!svg.contains(t))return;
+  const nav=t.closest('[data-go]');if(nav){goRoom(nav.dataset.go);return}
+  const rm=t.closest('[data-room]');if(rm){goRoom(rm.dataset.room);return}
+  const o=t.closest('[data-id]');if(o){inspect(o.dataset.id);return}
+  ripple(cx,cy);
+}
+const ptrs=new Map();let down=null,moved=false,lastPinch=null;
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){down={x:e.clientX,y:e.clientY,cam:{...cam}};moved=false}
+  else if(ptrs.size===2){moved=true;const [a,b]=[...ptrs.values()];lastPinch={d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2,my:(a.y+b.y)/2}}});
+svg.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2&&lastPinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const k=toSvg(0,0).k;setCam({x:cam.x-(mx-lastPinch.mx)*k,y:cam.y-(my-lastPinch.my)*k,w:cam.w});if(d>0)zoomAt(mx,my,lastPinch.d/d);lastPinch={d,mx,my}}
+  else if(ptrs.size===1&&down){const dx=e.clientX-down.x,dy=e.clientY-down.y;if(!moved&&Math.hypot(dx,dy)>7)moved=true;if(moved){const r=svg.getBoundingClientRect();const k=Math.max(down.cam.w/r.width,down.cam.h/r.height);setCam({x:down.cam.x-dx*k,y:down.cam.y-dy*k,w:down.cam.w})}}});
+function endPtr(e){if(!ptrs.has(e.pointerId))return;const wasSingle=ptrs.size===1;ptrs.delete(e.pointerId);
+  if(ptrs.size<2)lastPinch=null;
+  if(ptrs.size===1){const p=[...ptrs.values()][0];down={x:p.x,y:p.y,cam:{...cam}}}
+  if(ptrs.size===0){if(wasSingle&&!moved&&e.type==='pointerup'&&!busy)handleTap(e.clientX,e.clientY);down=null}}
+svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
+svg.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY>0?1.12:1/1.12)},{passive:false});
+svg.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const t=e.target;if(!t.dataset)return;if(t.dataset.go){e.preventDefault();goRoom(t.dataset.go)}else if(t.dataset.room){e.preventDefault();goRoom(t.dataset.room)}else if(t.dataset.id){e.preventDefault();inspect(t.dataset.id)}});
+function centerZoom(f){const r=svg.getBoundingClientRect();const from={...cam};zoomAt(r.left+r.width/2,r.top+r.height/2,f);const to={...cam};cam=from;applyCam();animateCam(to,220)}
+document.getElementById('zin').onclick=()=>centerZoom(1/1.5);
+document.getElementById('zout').onclick=()=>centerZoom(1.5);
+document.getElementById('zfit').onclick=()=>animateCam(camFor(),300);
+document.getElementById('planBtn').onclick=goPlan;
+window.addEventListener('resize',()=>{const cx=cam.x+cam.w/2,cy=cam.y+cam.h/2;const w=cam.w;setCam({x:cx-w/2,y:cy-w*aspect()/2,w})});
+
+/* ---------- hint / reveal ---------- */
+document.getElementById('hintBtn').onclick=()=>{
+  if(current==='plan')return;
+  const left=activeF().filter(f=>f.room===current&&!S.j[f.id]);
+  if(!left.length){toast('Nothing left to find in this room');return}
+  const f=pick(left.filter(x=>!S.hinted.includes(x.id)).length?left.filter(x=>!S.hinted.includes(x.id)):left);const b=bboxOf(f.id);if(!b)return;
+  if(!S.hinted.includes(f.id))S.hinted.push(f.id);S.hints++;save();
+  const r=Math.max(b.width,b.height)/2+40;
+  const c=el('circle',{cx:b.x+b.width/2,cy:b.y+b.height/2,r,fill:'none',stroke:'#D4A04C','stroke-width':6,class:'pulse'});
+  markersG.appendChild(c);setTimeout(()=>c.remove(),2600);
+  toast(`Hint: look near the ${f.label.toLowerCase()}`);
+};
+document.getElementById('revealBtn').onclick=()=>{
+  if(current==='plan')return;
+  card.innerHTML=`<div class="card"><p class="q">Show everything you haven't found?</p><p>Anything revealed won't count as found, even if you raise it afterward. This covers every room.</p><div class="btnrow"><button class="primary" id="revYes">Show what I missed</button><button id="revNo">Keep looking</button></div></div>`;
+  document.getElementById('revYes').onclick=()=>{activeF().forEach(f=>{if(!S.j[f.id]&&!S.revealed.includes(f.id))S.revealed.push(f.id)});save();renderMarkers();showIntroCard();toast('Missed findings are outlined in red')};
+  document.getElementById('revNo').onclick=showIntroCard;
+  scrollCard();
+};
+
+/* ---------- timer ---------- */
+let tick=null,running=false;
+const timerTxt=document.getElementById('timerTxt'),timerIcon=document.getElementById('timerIcon'),timerBtn=document.getElementById('timerBtn');
+function fmt(s){s=Math.max(0,Math.round(s));return `${Math.floor(s/60)}:${pad(s%60)}`}
+function drawTimer(){
+  if(!S.timed){timerTxt.textContent='No timer';timerIcon.innerHTML=`<circle cx="9" cy="9" r="7" fill="none" stroke="#D4A04C" stroke-width="2"/><path d="M4 14 L14 4" stroke="#D4A04C" stroke-width="2"/>`;timerBtn.classList.remove('low');return}
+  timerTxt.textContent=S.ended?"Time's up":fmt(S.remaining);
+  timerIcon.innerHTML=running?`<rect x="4" y="3" width="3.5" height="12" fill="#D4A04C"/><rect x="10.5" y="3" width="3.5" height="12" fill="#D4A04C"/>`:`<path d="M5 3 L15 9 L5 15Z" fill="#D4A04C"/>`;
+  timerBtn.classList.toggle('low',S.remaining<=300);
+}
+function startTimer(){if(!S.timed||S.remaining<=0||S.ended)return;running=true;clearInterval(tick);let last=Date.now();tick=setInterval(()=>{const now=Date.now();S.remaining-=(now-last)/1000;last=now;if(S.remaining<=0){S.remaining=0;S.ended=true;stopTimer();openDebrief("Time's up")}drawTimer();if(Math.round(S.remaining)%5===0)save()},250);drawTimer()}
+function stopTimer(){running=false;clearInterval(tick);drawTimer();save()}
+timerBtn.onclick=()=>{if(!S.started){openIntro();return}if(!S.timed||S.ended)return;running?stopTimer():startTimer()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+
+/* ---------- sheets ---------- */
+const overlay=document.getElementById('overlay'),sheet=document.getElementById('sheet');
+function openSheet(html){sheet.innerHTML=html;overlay.classList.remove('hidden');sheet.scrollTop=0;const b=sheet.querySelector('button.primary')||sheet.querySelector('button');if(b)b.focus({preventScroll:true})}
+function closeSheet(){overlay.classList.add('hidden')}
+overlay.addEventListener('click',e=>{if(e.target===overlay&&S.started)closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.classList.contains('hidden')&&S.started)closeSheet()});
+
+function openIntro(){
+  const opt={timed:S.timed,realistic:S.realistic,sound:S.sound};
+  const row=(k,title,onTxt,offTxt)=>`<button class="sw" role="switch" data-k="${k}" aria-checked="${opt[k]}"><span class="swt"><b>${title}</b><span data-on="${esc(onTxt)}" data-off="${esc(offTxt)}">${opt[k]?onTxt:offTxt}</span></span><span class="state">${opt[k]?'On':'Off'}</span><span class="track" aria-hidden="true"></span></button>`;
+  openSheet(`<h2>Brightline Family Dental</h2>
+  <p>A small dental practice on a weekday morning. Each run switches on a different 12 to 15 findings, and the rest of the office shows its fixed version, so you can't walk it from memory.</p>
+  <p>Tap anything you'd bring up with the owner. Decide whether to raise it, how severe it is, and whether to give the fix away or save it for the assessment. Then compare your calls with the card.</p>
+  <h3 class="sec" style="margin-top:18px">Set up this run</h3>
+  <p class="tip">Tap a setting to switch it on or off. All three start on.</p>
+  ${row('timed','30-minute clock','On: timed like a real walkthrough. Anything you raise after time runs out is tagged.','Off: practice at your own pace with no clock.')}
+  ${row('realistic','Realistic mode','On: no counts anywhere, because on site you never know how many findings there are.','Off: shows how many findings are in each room. Good while you are learning.')}
+  ${row('sound','Office sounds','On: background noise of a working office that changes as you move between rooms.','Off: silent.')}
+  <p class="tip">The clock and realistic mode stay set for the whole run. To change them, start a new run from the debrief. Sound can be switched any time with the speaker button at the top.</p>
+  <div class="btns"><button class="primary" id="goStart">Start the walkthrough</button></div>`);
+  sheet.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{const k=b.dataset.k;opt[k]=!opt[k];b.setAttribute('aria-checked',opt[k]);b.querySelector('.state').textContent=opt[k]?'On':'Off';const d=b.querySelector('[data-on]');d.textContent=opt[k]?d.dataset.on:d.dataset.off});
+  document.getElementById('goStart').onclick=()=>{S.timed=opt.timed;S.realistic=opt.realistic;S.sound=opt.sound;S.started=true;S.remaining=1800;save();closeSheet();renderScene(current);if(current==='plan')showIntroCard();if(S.timed)startTimer();drawTimer();drawSound();if(S.sound)Sound.start()};
+}
+/* ---------- sound toggle ---------- */
+const soundBtn=document.getElementById('soundBtn');
+function drawSound(){const onx=S.sound;document.getElementById('soundIcon').innerHTML=`<path d="M3 7.5h3l4-3.5v12l-4-3.5H3z" fill="#D4A04C"/>`+(onx?`<path d="M13 7a4 4 0 0 1 0 6M15.2 4.8a7 7 0 0 1 0 10.4" fill="none" stroke="#D4A04C" stroke-width="1.8" stroke-linecap="round"/>`:`<path d="M13 7.5l5 5M18 7.5l-5 5" stroke="#D4A04C" stroke-width="1.8" stroke-linecap="round"/>`);soundBtn.setAttribute('aria-pressed',onx);soundBtn.setAttribute('aria-label',onx?'Turn office sounds off':'Turn office sounds on')}
+soundBtn.onclick=()=>{S.sound=!S.sound;save();drawSound();if(S.sound&&S.started)Sound.start();else Sound.stop();toast(S.sound?'Office sounds on':'Office sounds off')};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)Sound.stop();else if(S.sound&&S.started)Sound.start()});
+document.addEventListener('pointerdown',()=>{if(S.sound&&S.started&&!Sound.on)Sound.start()},{capture:true});
+function pwLines(ids){const r=R(),out=[];ids.forEach(id=>{if(id==='r-sticky')out.push(`Front desk PC: ${r.desk}`);if(id==='r-wifi')out.push(`Wi-Fi: ${r.wifi}`);if(id==='b-whiteboard'){out.push(`Dentrix: ${r.dx}`);out.push(`Payroll: ${r.pay}`)}if(id==='b-teamviewer')out.push(`TeamViewer: ${r.tv}`)});return out}
+const SB_PW=['r-sticky','r-wifi','b-whiteboard','b-teamviewer','o-shared','b-router'], SB_TR=['b-phish','h-recycle','h-exit','b-unattended','o-session','r-screen','r-fax'];
+function recommended(){return activeF().slice().sort((a,b)=>(SEVR[b.sev]*10-b.cost)-(SEVR[a.sev]*10-a.cost)||(a.cat==='give'?-1:1)).slice(0,3)}
+
+function openDebrief(heading){
+  const act=activeF(), st={found:0,hint:0,revealed:0,after:0,changed:0,dismissed:0,missed:0};
+  act.forEach(f=>st[statusOf(f.id)]++);
+  const fps=Object.keys(S.j).filter(id=>S.j[id].status==='fp');
+  const raised=raisedF();
+  const fnd=foundF(), sevM=fnd.filter(f=>S.j[f.id].sev===f.sev).length, catM=fnd.filter(f=>S.j[f.id].cat===f.cat).length;
+  const used=S.timed?Math.min(1800,1800-S.remaining):null;
+
+  /* pattern */
+  const patAct=act.filter(f=>f.pattern).map(f=>f.id), patFound=patAct.filter(id=>S.j[id]&&S.j[id].raise);
+  let pattern='';
+  if(patAct.length>=2){
+    const spotted=patFound.length>=2;
+    pattern=`<h3 class="sec">${spotted?'You spotted a pattern':'There was a pattern to connect'}</h3><div class="insight">
+      <p>${spotted?'Every password you found follows the same shape: a word plus the year.':'These passwords were out in the open this run, and every one is a word plus the year. Spot two and you can predict the rest.'}</p>
+      <ul>${pwLines(spotted?patFound:patAct).map(l=>`<li>${esc(l)}</li>`).join('')}</ul>
+      <details class="say"><summary>How to say it</summary><p>Several of the passwords I saw today follow the same pattern: a word plus the year. If someone gets one, they can probably guess the rest. A written password policy and a password manager fix that across the board.</p></details></div>`;
+  }
+
+  /* lead with three */
+  let lead='';
+  if(raised.length<3)lead=`<p class="tip">Raise at least three findings to practice choosing what to lead with.</p>`;
+  else lead=`<p>The owner gives you five minutes. Pick the three you'd lead with.</p><div id="leadList">${raised.map(f=>`<label class="pick"><input type="checkbox" value="${f.id}" ${S.lead.includes(f.id)?'checked':''}><span>${esc(f.title)} <span class="chip sev-${f.sev}" style="margin-left:4px">${f.sev}</span></span></label>`).join('')}</div><div class="btnrow"><button class="primary" id="leadBtn" ${S.lead.length===3?'':'disabled'}>Compare with my pick</button></div><div id="leadOut"></div>`;
+
+  /* SB 2610 */
+  const fid=raised.map(f=>f.id);
+  const pwHit=SB_PW.filter(id=>fid.includes(id)), trHit=SB_TR.filter(id=>fid.includes(id));
+  const sb=`<h3 class="sec">SB 2610 closer</h3><div class="insight">
+    <p>A practice this size falls in the under-20-employee tier. Under Texas SB 2610, a business in that tier with a password policy and staff security training can be shielded from exemplary (punitive) damages in a breach lawsuit.</p>
+    ${pwHit.length?`<p style="margin-bottom:2px"><b>Password policy</b>, from what you found:</p><ul>${pwHit.map(id=>`<li>${esc(FIND[id].title)}</li>`).join('')}</ul>`:''}
+    ${trHit.length?`<p style="margin-bottom:2px"><b>Staff training</b>, from what you found:</p><ul>${trHit.map(id=>`<li>${esc(FIND[id].title)}</li>`).join('')}</ul>`:''}
+    ${!pwHit.length&&!trHit.length?`<p class="tip">Nothing you raised maps to these two yet.</p>`:''}
+    <details class="say"><summary>How to close with it</summary><p>One more thing worth knowing. Texas passed a law, SB 2610, that protects small businesses from punitive damages after a breach if they have basic security in place. For a practice your size, that's a password policy and staff training. What I saw today with the passwords${trHit.length?' and the '+(trHit.includes('b-phish')?'phishing email':'day-to-day habits'):''} lines up directly with those two things.</p></details>
+    <p class="tip">Use it as the closer, not the opener. It's voluntary, and it doesn't change compensatory damages or regulatory enforcement.</p></div>`;
+
+  /* conduct */
+  const log=S.trapLog||[], trapsAvail=Object.keys(S.j).filter(id=>CONDUCT[id]);
+  const authTxt=S.auth==='signed'?'You got the walkthrough authorization signed before looking at anything.':S.auth==='late'?"You got the authorization signed, but only after you'd started looking. Get it signed at the front desk first.":"You never got the walkthrough authorization signed. Ask the office manager to sign it before you look at anything.";
+  const conduct=`<h3 class="sec">Professional conduct</h3><div class="insight">
+    <p>${authTxt}</p>
+    ${log.map(x=>`<p><b>${esc(x.title)}.</b> ${esc(x.why)}</p>`).join('')}
+    ${trapsAvail.length&&!log.length?`<p>You looked without touching: no photos, no opening files, no trying doors or computers. That's the standard.</p>`:''}</div>`;
+
+  /* room by room */
+  let rooms='';
+  ROOM_ORDER.forEach(room=>{
+    const all=act.filter(f=>f.room===room);if(!all.length)return;
+    rooms+=`<h4 class="dr">${ROOM_NAMES[room]}</h4>`;
+    all.forEach(f=>{const s=statusOf(f.id),j=S.j[f.id];
+      rooms+=`<details class="di"><summary><span class="t">${esc(f.title)}</span><span class="chip sev-${f.sev}">${f.sev}</span><span class="chip c-${f.cat}">${CATN[f.cat]}</span><span class="st ${s}">${STATUS_TXT[s]}</span></summary><div class="body">
+        ${j&&j.raise?`<p class="muted">Your call: ${j.sev}, ${CATN[j.cat]}.</p>`:''}
+        <p>${esc(fill(f.see))}</p><p><b>Say:</b> ${esc(fill(f.say))}</p><p><b>Assessment would recommend:</b> ${esc(f.fix)}</p><p><b>Ask:</b> ${esc(f.ask)}</p><p class="muted" style="font-size:14px">${esc(f.ref)}</p></div></details>`});
+  });
+  if(fps.length)rooms+=`<h4 class="dr">False positives</h4>`+fps.map(id=>`<details class="di"><summary><span class="t">${esc(DECOYS[id]?DECOYS[id].title:FIND[id].label)}</span></summary><div class="body"><p>${esc(DECOYS[id]?DECOYS[id].note:fill(FIND[id].ok))}</p></div></details>`).join('');
+
+  openSheet(`<h2>${esc(heading||'Debrief')}</h2>
+  <p class="muted">${act.length} findings were switched on this run${S.hints?`. ${S.hints} hint${S.hints>1?'s':''} used`:''}${used!=null?`. Time used: ${fmt(used)}`:''}.</p>
+  <div class="stats">
+    <div><b>${st.found}</b><span>Found</span></div><div><b>${st.hint}</b><span>With a hint</span></div><div><b>${st.revealed}</b><span>Revealed</span></div><div><b>${st.after}</b><span>After time</span></div>
+    <div><b>${st.changed}</b><span>Second look</span></div><div><b>${st.dismissed}</b><span>Passed on</span></div><div><b>${st.missed}</b><span>Missed</span></div><div><b>${fps.length}</b><span>False positives</span></div>
+  </div>
+  <p class="tip">Only "Found" counts toward your score, and your calls are scored on those items only. Severity matched ${fnd.length?`${sevM} of ${fnd.length}`:'n/a'}; give it or save it matched ${fnd.length?`${catM} of ${fnd.length}`:'n/a'}.</p>
+  ${pattern}
+  <h3 class="sec">Lead with three</h3>${lead}
+  ${sb}
+  ${conduct}
+  <h3 class="sec">Room by room</h3>${rooms}
+  <h3 class="sec">Your notes</h3>
+  <textarea id="notes" placeholder="What would you lead with if the owner only gave you five minutes?">${esc(S.notes)}</textarea>
+  <div class="btns" id="dbBtns"><button class="primary" id="keep">Keep walking</button><button id="reset">Start a new run</button></div>`);
+  const ta=document.getElementById('notes');ta.oninput=()=>{S.notes=ta.value;save()};
+  document.getElementById('keep').onclick=closeSheet;
+  document.getElementById('reset').onclick=()=>{
+    const bb=document.getElementById('dbBtns');
+    bb.innerHTML=`<p style="width:100%;margin:0">Start a new run? This clears this run's calls, notes, and timer.</p><button class="primary" id="resetYes">Yes, start a new run</button><button id="resetNo">Cancel</button>`;
+    document.getElementById('resetNo').onclick=()=>openDebrief(heading);
+    document.getElementById('resetYes').onclick=()=>{const t=S.timed,rl=S.realistic,sd=S.sound;stopTimer();S=freshState();S.timed=t;S.realistic=rl;S.sound=sd;save();closeSheet();renderScene('plan');cam=camFor();applyCam();showIntroCard();drawTimer();openIntro()};
+  };
+  const ll=document.getElementById('leadList');
+  if(ll){
+    const lb=document.getElementById('leadBtn');
+    ll.querySelectorAll('input').forEach(i=>i.onchange=()=>{const ch=[...ll.querySelectorAll('input:checked')].map(x=>x.value);if(ch.length>3){i.checked=false;return}S.lead=ch;S.leadDone=false;save();lb.disabled=ch.length!==3;document.getElementById('leadOut').innerHTML=''});
+    const show=()=>{const rec=recommended(),overlap=S.lead.filter(id=>rec.some(f=>f.id===id)).length;
+      document.getElementById('leadOut').innerHTML=`<div class="cmp"><div><b>Your three</b><ol>${S.lead.map(id=>`<li>${esc(FIND[id].title)}</li>`).join('')}</ol></div><div><b>My three</b><ol>${rec.map(f=>`<li>${esc(f.title)}${statusOf(f.id)==='missed'||statusOf(f.id)==='dismissed'?' <span class="muted">(you didn\'t raise this)</span>':''}</li>`).join('')}</ol></div></div><p class="tip" style="margin-top:10px">${overlap} of 3 match. Lead with what is high severity and cheap to fix: the owner can act today, and you've shown value before you mention the assessment.</p>`;
+      S.leadDone=true;save()};
+    lb.onclick=show;if(S.leadDone&&S.lead.length===3)show();
+  }
+}
+document.getElementById('debriefBtn').onclick=()=>{if(!S.started){openIntro();return}openDebrief()};
+let toastT;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+
+/* ---------- boot ---------- */
+const resumed=load();
+renderScene('plan');cam=camFor();applyCam();showIntroCard();drawTimer();drawSound();
+if(!resumed||!S.started)openIntro();
+else if(S.timed&&!S.ended&&S.remaining>0)toast(`Welcome back. ${fmt(S.remaining)} left. Tap the clock to resume.${S.sound?' Sound starts when you tap.':''}`);
+
+</script>
+</body>
+</html>
